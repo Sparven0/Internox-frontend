@@ -64,6 +64,24 @@ export const GET_IMAP_CREDENTIALS = gql`
   }
 `;
 
+export const GET_INIT_PAGE_DATA = gql`
+  query GetInitPageData {
+    getInitPageData {
+      company {
+        id
+        name
+      }
+      users {
+        id
+        email
+        role
+      }
+      customers
+      emails
+    }
+  }
+`;
+
 export const GET_FORTNOX_DATA = gql`
   query GetFortnoxData($companyId: String!, $endpoint: String) {
     getFortnoxData(companyId: $companyId, endpoint: $endpoint)
