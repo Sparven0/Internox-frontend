@@ -1,6 +1,9 @@
 import { useState, type SubmitEvent } from "react";
 import { useMutation } from "@apollo/client/react";
 import { LoginDocument } from "../__generated__/graphql";
+import { useAuth } from "../context/useAuth";
+import { setAuthToken } from "../apolloClient";
+import { useNavigate } from "@tanstack/react-router";
 import {
   Button,
   Field,
@@ -43,6 +46,8 @@ const useStyles = makeStyles({
 
 export default function LoginPage() {
   const styles = useStyles();
+  const { setToken } = useAuth();
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [companyDomain, setCompanyDomain] = useState("");
@@ -56,8 +61,9 @@ export default function LoginPage() {
         variables: { email, password, companyDomain },
       });
       if (data) {
-        localStorage.setItem("token", data.login.token);
-        // redirect or update auth state here
+        setAuthToken(data.login.token);
+        setToken(data.login.token);
+        navigate({ to: "/dashboard" });
       }
     } catch (err) {
       console.error(err);

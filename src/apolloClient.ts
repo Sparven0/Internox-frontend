@@ -6,15 +6,23 @@ const httpLink = new HttpLink({
   uri: "http://localhost:1222/graphql",
 });
 
-const authLink = new SetContextLink(({ headers }) => {
-  const token = localStorage.getItem("token");
-  return {
-    headers: {
-      ...headers,
-      authorization: token ? `Bearer ${token}` : "",
-    },
-  };
-});
+// Token is kept in memory (set via setAuthToken). Never stored in localStorage.
+let authToken: string | null = null;
+
+export function setAuthToken(token: string | null) {
+  authToken = token;
+}
+
+export function getAuthToken(): string | null {
+  return authToken;
+}
+
+const authLink = new SetContextLink(({ headers }) => ({
+  headers: {
+    ...headers,
+    authorization: authToken ? `Bearer ${authToken}` : "",
+  },
+}));
 
 const client = new ApolloClient({
   link: authLink.concat(httpLink),
