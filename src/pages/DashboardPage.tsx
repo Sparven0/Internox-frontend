@@ -12,8 +12,11 @@ import {
 } from "@fluentui/react-components";
 import {
   GetInitPageDataDocument,
+  GetInitPageIntegrationDataDocument,
   type GetInitPageDataQuery,
   type GetInitPageDataQueryVariables,
+  type GetInitPageIntegrationDataQuery,
+  type GetInitPageIntegrationDataQueryVariables,
 } from "../__generated__/graphql";
 
 // Concrete shapes for the JSON scalar fields
@@ -89,6 +92,11 @@ export default function DashboardPage() {
     GetInitPageDataQueryVariables
   >(GetInitPageDataDocument);
 
+  const { loading: integrationLoading, data: integrationData } = useQuery<
+    GetInitPageIntegrationDataQuery,
+    GetInitPageIntegrationDataQueryVariables
+  >(GetInitPageIntegrationDataDocument);
+
   if (loading) {
     return (
       <div className={styles.page}>
@@ -107,9 +115,15 @@ export default function DashboardPage() {
     );
   }
 
-  const { company, users, customers, emails } = data!.getInitPageData;
-  const customerList = (customers as Customer[] | null) ?? [];
-  const emailGroups = (emails as EmailGroup[] | null) ?? [];
+  const { company, users } = data!.getInitPageData;
+  const customerList =
+    (integrationData?.getInitPageIntegrationData?.customers as
+      | Customer[]
+      | null) ?? [];
+  const emailGroups =
+    (integrationData?.getInitPageIntegrationData?.emails as
+      | EmailGroup[]
+      | null) ?? [];
 
   return (
     <div className={styles.page}>
@@ -151,26 +165,32 @@ export default function DashboardPage() {
         <Card className={styles.card}>
           <CardHeader
             header={
-              <Text weight="semibold">Customers ({customerList.length})</Text>
+              <Text weight="semibold">
+                Customers {!integrationLoading && `(${customerList.length})`}
+              </Text>
             }
           />
-          <div className={styles.list}>
-            {customerList.map((customer, i) => (
-              <div key={i} className={styles.row}>
-                <Text size={300} weight="semibold">
-                  {customer.name}
-                </Text>
-                <Text size={300} className={styles.meta}>
-                  {customer.email}
-                </Text>
-              </div>
-            ))}
-          </div>
+          {integrationLoading ? (
+            <Spinner size="tiny" label="Fetching…" />
+          ) : (
+            <div className={styles.list}>
+              {customerList.map((customer, i) => (
+                <div key={i} className={styles.row}>
+                  <Text size={300} weight="semibold">
+                    {customer.name}
+                  </Text>
+                  <Text size={300} className={styles.meta}>
+                    {customer.email}
+                  </Text>
+                </div>
+              ))}
+            </div>
+          )}
         </Card>
       </div>
 
       {/* Emails */}
-      {emailGroups.length > 0 && (
+      {!integrationLoading && emailGroups.length > 0 && (
         <Card className={styles.card}>
           <CardHeader
             header={

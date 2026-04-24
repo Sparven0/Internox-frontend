@@ -5,19 +5,28 @@ import {
   Outlet,
   redirect,
 } from "@tanstack/react-router";
-import LoginPage from "./pages/LoginPage";
-import DashboardPage from "./pages/DashboardPage";
+import { lazy } from "react";
+import {
+  RootPending,
+  RootError,
+  PagePending,
+  PageError,
+} from "./components/RootFallbacks";
 
 import { getAuthToken } from "./apolloClient";
 
 const rootRoute = createRootRoute({
   component: Outlet,
+  pendingComponent: RootPending,
+  errorComponent: RootError,
 });
 
 const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/",
-  component: LoginPage,
+  component: lazy(() => import("./pages/LoginPage")),
+  pendingComponent: PagePending,
+  errorComponent: PageError,
 });
 
 const dashboardRoute = createRoute({
@@ -28,10 +37,29 @@ const dashboardRoute = createRoute({
       throw redirect({ to: "/" });
     }
   },
-  component: DashboardPage,
+  component: lazy(() => import("./pages/DashboardPage")),
+  pendingComponent: PagePending,
+  errorComponent: PageError,
 });
 
-const routeTree = rootRoute.addChildren([loginRoute, dashboardRoute]);
+const adminRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/admin",
+  beforeLoad: () => {
+    if (!getAuthToken()) {
+      throw redirect({ to: "/" });
+    }
+  },
+  component: lazy(() => import("./pages/AdminPage")),
+  pendingComponent: PagePending,
+  errorComponent: PageError,
+});
+
+const routeTree = rootRoute.addChildren([
+  loginRoute,
+  dashboardRoute,
+  adminRoute,
+]);
 
 export const router = createRouter({ routeTree });
 

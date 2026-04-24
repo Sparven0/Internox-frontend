@@ -76,6 +76,13 @@ export const GET_INIT_PAGE_DATA = gql`
         email
         role
       }
+    }
+  }
+`;
+
+export const GET_INIT_PAGE_INTEGRATION_DATA = gql`
+  query GetInitPageIntegrationData {
+    getInitPageIntegrationData {
       customers
       emails
     }
