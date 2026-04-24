@@ -6,7 +6,6 @@ const httpLink = new HttpLink({
   uri: "http://localhost:1222/graphql",
 });
 
-// Token is kept in memory (set via setAuthToken). Never stored in localStorage.
 let authToken: string | null = null;
 
 export function setAuthToken(token: string | null) {
@@ -26,7 +25,30 @@ const authLink = new SetContextLink(({ headers }) => ({
 
 const client = new ApolloClient({
   link: authLink.concat(httpLink),
-  cache: new InMemoryCache(),
+  cache: new InMemoryCache({
+    typePolicies: {
+      Query: {
+        fields: {
+          getInitPageData: { keyArgs: false },
+          getUsers: { keyArgs: ["company"] },
+          getUsersByCompanyId: { keyArgs: ["companyId"] },
+        },
+      },
+      Company: { keyFields: ["id"] },
+      User: { keyFields: ["id"] },
+      ImapCredential: { keyFields: ["id"] },
+    },
+  }),
+  defaultOptions: {
+    watchQuery: {
+      fetchPolicy: "cache-and-network",
+      errorPolicy: "all",
+    },
+    query: {
+      fetchPolicy: "network-only",
+      errorPolicy: "all",
+    },
+  },
 });
 
 export default client;
