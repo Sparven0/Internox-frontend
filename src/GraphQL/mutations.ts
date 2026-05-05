@@ -66,3 +66,12 @@ export const CREATE_USER = gql`
     createUser(email: $email, password: $password, companyDomain: $companyDomain) 
   }
 `;
+export const GET_ONBOARDING_STATUS = gql`
+  query GetOnboardingStatus {
+    getOnboardingStatus {
+      hasFortnox
+      hasEmployees
+      isComplete
+    }
+  }
+`;

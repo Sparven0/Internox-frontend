@@ -4,6 +4,8 @@ import { LoginDocument } from "../__generated__/graphql";
 import { useAuth } from "../context/useAuth";
 import { setAuthToken } from "../apolloClient";
 import { useNavigate } from "@tanstack/react-router";
+import { useApolloClient } from "@apollo/client/react";
+
 import {
   Button,
   Field,
@@ -14,7 +16,7 @@ import {
   tokens,
 } from "@fluentui/react-components";
 import "../LoginPage.css";
-
+import { GetOnboardingStatusDocument } from "../__generated__/graphql";
 const useStyles = makeStyles({
   input: {
     width: "100%",
@@ -34,6 +36,7 @@ const useStyles = makeStyles({
 });
 
 export default function LoginPage() {
+  const apolloClient = useApolloClient()
   const styles = useStyles();
   const { setToken } = useAuth();
   const navigate = useNavigate();
@@ -43,22 +46,38 @@ export default function LoginPage() {
 
   const [login, { loading, error }] = useMutation(LoginDocument);
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    try {
-      const { data } = await login({
-        variables: { email, password, companyDomain },
+const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
+  try {
+    const { data } = await login({
+      variables: { email, password, companyDomain },
+    });
+    if (data) {
+      setAuthToken(data.login.token);
+      setToken(data.login.token);
+      localStorage.setItem("jwt_token", data.login.token);
+
+      // Kolla onboarding-status med den nya tokenen
+      const { data: statusData } = await apolloClient.query({
+        query: GetOnboardingStatusDocument,
+        context: {
+          headers: {
+            Authorization: `Bearer ${data.login.token}`,
+          },
+        },
+        fetchPolicy: "network-only",
       });
-      if (data) {
-        setAuthToken(data.login.token);
-        setToken(data.login.token);
-        localStorage.setItem("jwt_token", data.login.token);
+
+      if (statusData?.getOnboardingStatus?.isComplete) {
+        navigate({ to: "/dashboard" });
+      } else {
         navigate({ to: "/setup" });
       }
-    } catch (err) {
-      console.error(err);
     }
-  };
+  } catch (err) {
+    console.error(err);
+  }
+};
 
   return (
     <div className="login-page">
