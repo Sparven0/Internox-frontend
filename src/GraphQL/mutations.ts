@@ -40,3 +40,24 @@ export const CREATE_COMPANY_ADMIN = gql`
     createCompanyAdmin(company: $company, email: $email, password: $password)
   }
 `;
+export const ADD_IMAP_CREDENTIALS = gql`
+  mutation AddImapCredentials(
+    $companyDomain: String!
+    $userEmail: String!
+    $imapHost: String!
+    $imapPort: Int!
+    $emailAddress: String!
+    $password: String!
+  ) {
+    addImapCredentials(
+      companyDomain: $companyDomain
+      userEmail: $userEmail
+      imapHost: $imapHost
+      imapPort: $imapPort
+      emailAddress: $emailAddress
+      password: $password
+    ) {
+      id
+    }
+  }
+`;

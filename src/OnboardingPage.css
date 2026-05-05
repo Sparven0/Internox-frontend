@@ -1,0 +1,272 @@
+/* ── Google Font ── */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
+
+/* ── Page shell ── */
+.onboarding-page {
+  min-height: 100vh;
+  background: #ffffff;
+  font-family: 'DM Sans', sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Header ── */
+.onboarding-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 48px;
+  background: #ffffff;
+  border-bottom: 1px solid #e0e0db;
+}
+
+.onboarding-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 20px;
+  font-weight: 700;
+  color: #1a1a1a;
+  letter-spacing: -0.5px;
+}
+
+.onboarding-logo-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #00c06b;
+  flex-shrink: 0;
+}
+
+.onboarding-badge {
+  font-size: 11px;
+  font-weight: 600;
+  color: #008f4f;
+  background: #f0fdf7;
+  border: 1px solid #d6f7e9;
+  border-radius: 20px;
+  padding: 4px 12px;
+  letter-spacing: 0.3px;
+}
+
+/* ── Main ── */
+.onboarding-main {
+  flex: 1;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 64px 24px 80px;
+  width: 100%;
+}
+
+/* ── Hero ── */
+.onboarding-hero-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #00c06b;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin: 0 0 16px;
+}
+
+.onboarding-hero-title {
+  font-size: 36px;
+  font-weight: 700;
+  color: #1a1a1a;
+  letter-spacing: -1px;
+  line-height: 1.15;
+  margin: 0 0 16px;
+}
+
+.onboarding-hero-sub {
+  font-size: 16px;
+  color: #555555;
+  line-height: 1.6;
+  margin: 0 0 48px;
+  max-width: 520px;
+}
+
+/* ── Steps ── */
+.onboarding-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.step-card {
+  background: #f7f7f5;
+  border: 1px solid #e0e0db;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.step-card--active {
+  border-color: #00c06b;
+  box-shadow: 0 0 0 3px #f0fdf7;
+}
+
+.step-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 24px;
+}
+
+.step-number {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #f0fdf7;
+  color: #00c06b;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1.5px solid #d6f7e9;
+}
+
+.step-number--done {
+  background: #00c06b;
+  color: #ffffff;
+  border-color: #00c06b;
+}
+
+.step-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0 0 2px;
+}
+
+.step-desc {
+  font-size: 13px;
+  color: #888888;
+  margin: 0;
+}
+
+.step-divider {
+  height: 1px;
+  background: #e0e0db;
+  margin: 0 24px;
+}
+
+.step-body {
+  padding: 20px 24px 24px;
+}
+
+/* ── Fortnox button extras ── */
+.fortnox-btn-hint {
+  margin-top: 12px;
+  font-size: 12px;
+  color: #aaaaaa;
+  line-height: 1.5;
+}
+
+/* ── Form grid ── */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.form-grid__full {
+  grid-column: 1 / -1;
+}
+
+/* ── Alert ── */
+.alert {
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  margin-top: 16px;
+  line-height: 1.5;
+}
+
+.alert--success {
+  background: #f0fdf7;
+  color: #008f4f;
+  border: 1px solid #d6f7e9;
+}
+
+.alert--error {
+  background: #fff5f5;
+  color: #c0392b;
+  border: 1px solid #fcd0cc;
+}
+
+/* ── Field hint ── */
+.field-hint {
+  margin-top: 12px;
+  font-size: 12px;
+  color: #aaaaaa;
+  line-height: 1.5;
+}
+
+/* ── Footer ── */
+.onboarding-footer {
+  border-top: 1px solid #e0e0db;
+  padding: 20px 48px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: #aaaaaa;
+}
+
+.onboarding-footer a {
+  color: #00c06b;
+  text-decoration: none;
+}
+
+.onboarding-footer a:hover {
+  text-decoration: underline;
+}
+
+/* ── Staggered entry animation ── */
+@keyframes fadeSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.onboarding-hero-label { animation: fadeSlideUp 0.4s ease both; animation-delay: 0.05s; }
+.onboarding-hero-title { animation: fadeSlideUp 0.4s ease both; animation-delay: 0.12s; }
+.onboarding-hero-sub   { animation: fadeSlideUp 0.4s ease both; animation-delay: 0.18s; }
+.onboarding-steps      { animation: fadeSlideUp 0.4s ease both; animation-delay: 0.26s; }
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  .onboarding-header {
+    padding: 16px 20px;
+  }
+  .onboarding-main {
+    padding: 40px 16px 60px;
+  }
+  .onboarding-hero-title {
+    font-size: 28px;
+  }
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+  .form-grid__full {
+    grid-column: 1;
+  }
+  .onboarding-footer {
+    padding: 16px 20px;
+    flex-direction: column;
+    gap: 8px;
+    text-align: center;
+  }
+}

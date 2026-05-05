@@ -72,7 +72,9 @@ export type Mutation = {
   createCompanyAdmin: Scalars['String']['output'];
   login: AuthPayload;
   onboardCompany: OnboardResult;
+  addImapCredentials: ImapCredential;
 };
+
 
 
 export type MutationCreateCompanyArgs = {

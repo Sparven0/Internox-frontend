@@ -5,7 +5,9 @@ import "./index.css";
 import App from "./App.tsx";
 import { FluentProvider } from "@fluentui/react-components";
 import { internoxTheme } from "./theme";
-import { AuthProvider } from "./context/AuthContext";
+import { AuthProvider } from "./context/AuthContext.tsx";
+
+
 
 createRoot(document.getElementById("root")!).render(
   <ApolloProvider client={client}>

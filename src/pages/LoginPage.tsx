@@ -63,7 +63,7 @@ export default function LoginPage() {
       if (data) {
         setAuthToken(data.login.token);
         setToken(data.login.token);
-        navigate({ to: "/dashboard" });
+        navigate({ to: "/setup" });
       }
     } catch (err) {
       console.error(err);

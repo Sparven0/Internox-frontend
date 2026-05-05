@@ -55,10 +55,25 @@ const adminRoute = createRoute({
   errorComponent: PageError,
 });
 
+const setupRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/setup",
+  beforeLoad: () => {
+    if (!getAuthToken()) {
+      throw redirect({ to: "/" });
+    }
+  },
+  component: lazy(() => import("./pages/setupPage")),
+  pendingComponent: PagePending,
+  errorComponent: PageError,
+});
+
+
 const routeTree = rootRoute.addChildren([
   loginRoute,
   dashboardRoute,
   adminRoute,
+  setupRoute
 ]);
 
 export const router = createRouter({ routeTree });
