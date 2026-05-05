@@ -1,4 +1,4 @@
-import { useState, type SubmitEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { useMutation } from "@apollo/client/react";
 import { LoginDocument } from "../__generated__/graphql";
 import { useAuth } from "../context/useAuth";
@@ -10,37 +10,26 @@ import {
   Input,
   MessageBar,
   MessageBarBody,
-  Text,
   makeStyles,
   tokens,
 } from "@fluentui/react-components";
+import "../LoginPage.css";
 
 const useStyles = makeStyles({
-  page: {
-    minHeight: "100vh",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: tokens.colorNeutralBackground2,
-  },
-  card: {
-    width: "360px",
-    padding: "40px",
+  input: {
+    width: "100%",
     backgroundColor: tokens.colorNeutralBackground1,
-    borderRadius: tokens.borderRadiusLarge,
-    boxShadow: tokens.shadow16,
-    display: "flex",
-    flexDirection: "column",
-    gap: "20px",
+    fontFamily: tokens.fontFamilyBase,
   },
-  title: {
-    textAlign: "center",
-    color: tokens.colorBrandForeground1,
+  submitBtn: {
+    width: "100%",
+    height: "48px",
+    fontSize: tokens.fontSizeBase400,
+    fontWeight: tokens.fontWeightSemibold,
+    letterSpacing: "0.01em",
   },
-  form: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "16px",
+  errorBar: {
+    borderRadius: "8px",
   },
 });
 
@@ -54,7 +43,7 @@ export default function LoginPage() {
 
   const [login, { loading, error }] = useMutation(LoginDocument);
 
-  const handleSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
       const { data } = await login({
@@ -63,6 +52,7 @@ export default function LoginPage() {
       if (data) {
         setAuthToken(data.login.token);
         setToken(data.login.token);
+        localStorage.setItem("jwt_token", data.login.token);
         navigate({ to: "/setup" });
       }
     } catch (err) {
@@ -71,53 +61,106 @@ export default function LoginPage() {
   };
 
   return (
-    <div className={styles.page}>
-      <div className={styles.card}>
-        <Text as="h1" size={600} weight="semibold" className={styles.title}>
-          Sign in
-        </Text>
-        <form className={styles.form} onSubmit={handleSubmit}>
-          <Field label="Email" required>
-            <Input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              appearance="outline"
-            />
-          </Field>
-          <Field label="Password" required>
-            <Input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Password"
-              appearance="outline"
-            />
-          </Field>
-          <Field label="Company domain" required>
-            <Input
-              value={companyDomain}
-              onChange={(e) => setCompanyDomain(e.target.value)}
-              placeholder="yourcompany"
-              appearance="outline"
-            />
-          </Field>
-          {error && (
-            <MessageBar intent="error">
-              <MessageBarBody>{error.message}</MessageBarBody>
-            </MessageBar>
-          )}
-          <Button
-            type="submit"
-            appearance="primary"
-            disabled={loading}
-            size="large"
-          >
-            {loading ? "Signing in…" : "Sign in"}
-          </Button>
-        </form>
+    <div className="login-page">
+
+      {/* ── Left panel — visual ── */}
+      <div className="login-visual" aria-hidden="true">
+        <div className="login-visual__noise" />
+        <div className="login-visual__grid" />
+        <div className="login-visual__glow" />
+
+        <div className="login-visual__content">
+          <div className="login-visual__logo">
+            <span className="login-visual__logo-dot" />
+            internox
+          </div>
+          <div className="login-visual__tagline">
+            <p>Kundaktivitet.</p>
+            <p>Samlat.</p>
+            <p>Dagligen.</p>
+          </div>
+          <div className="login-visual__stats">
+            <div className="login-visual__stat">
+              <span className="login-visual__stat-value">∞</span>
+              <span className="login-visual__stat-label">Kunder synkade</span>
+            </div>
+            <div className="login-visual__stat-divider" />
+            <div className="login-visual__stat">
+              <span className="login-visual__stat-value">1</span>
+              <span className="login-visual__stat-label">Samlad vy</span>
+            </div>
+          </div>
+        </div>
       </div>
+
+      {/* ── Right panel — form ── */}
+      <div className="login-form-panel">
+        <div className="login-form-inner">
+
+          <div className="login-form-header">
+            <h1 className="login-form-title">Logga in</h1>
+            <p className="login-form-sub">
+              Välkommen tillbaka. Ange dina uppgifter nedan.
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="login-form">
+            <Field label="E-post" required>
+              <Input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="du@foretaget.se"
+                appearance="outline"
+                className={styles.input}
+              />
+            </Field>
+
+            <Field label="Lösenord" required>
+              <Input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••••••"
+                appearance="outline"
+                className={styles.input}
+              />
+            </Field>
+
+            <Field label="Företagsdomän" required>
+              <Input
+                value={companyDomain}
+                onChange={(e) => setCompanyDomain(e.target.value)}
+                placeholder="foretaget.se"
+                appearance="outline"
+                className={styles.input}
+              />
+            </Field>
+
+            {error && (
+              <MessageBar intent="error" className={styles.errorBar}>
+                <MessageBarBody>{error.message}</MessageBarBody>
+              </MessageBar>
+            )}
+
+            <Button
+              type="submit"
+              appearance="primary"
+              disabled={loading}
+              size="large"
+              className={styles.submitBtn}
+            >
+              {loading ? "Loggar in…" : "Logga in"}
+            </Button>
+          </form>
+
+          <p className="login-form-footer">
+            Behöver du åtkomst?{" "}
+            <a href="mailto:support@internox.se">Kontakta oss</a>
+          </p>
+        </div>
+      </div>
+
     </div>
   );
 }
