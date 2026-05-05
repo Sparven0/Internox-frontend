@@ -41,6 +41,11 @@ export type ImapCredential = {
   user_id: Scalars['String']['output'];
 };
 
+export type ImapCredentialResult = {
+  __typename: 'ImapCredentialResult';
+  id: Scalars['ID']['output'];
+};
+
 export type InitPageCompany = {
   __typename: 'InitPageCompany';
   id: Scalars['ID']['output'];
@@ -68,13 +73,32 @@ export type InitUser = {
 
 export type Mutation = {
   __typename: 'Mutation';
+  addImapCredentials: ImapCredentialResult;
+  createAdmin: Scalars['String']['output'];
   createCompany?: Maybe<Company>;
   createCompanyAdmin: Scalars['String']['output'];
+  createUser: Scalars['String']['output'];
   login: AuthPayload;
+  loginSuperAdmin: SuperAdminAuthPayload;
   onboardCompany: OnboardResult;
-  addImapCredentials: ImapCredential;
+  saveFortnoxTokens: Scalars['String']['output'];
 };
 
+
+export type MutationAddImapCredentialsArgs = {
+  companyDomain: Scalars['String']['input'];
+  emailAddress: Scalars['String']['input'];
+  imapHost: Scalars['String']['input'];
+  imapPort?: InputMaybe<Scalars['Int']['input']>;
+  password: Scalars['String']['input'];
+  userEmail: Scalars['String']['input'];
+};
+
+
+export type MutationCreateAdminArgs = {
+  password: Scalars['String']['input'];
+  userName: Scalars['String']['input'];
+};
 
 
 export type MutationCreateCompanyArgs = {
@@ -90,6 +114,13 @@ export type MutationCreateCompanyAdminArgs = {
 };
 
 
+export type MutationCreateUserArgs = {
+  companyDomain: Scalars['String']['input'];
+  email: Scalars['String']['input'];
+  password: Scalars['String']['input'];
+};
+
+
 export type MutationLoginArgs = {
   companyDomain: Scalars['String']['input'];
   email: Scalars['String']['input'];
@@ -97,9 +128,24 @@ export type MutationLoginArgs = {
 };
 
 
+export type MutationLoginSuperAdminArgs = {
+  password: Scalars['String']['input'];
+  userName: Scalars['String']['input'];
+};
+
+
 export type MutationOnboardCompanyArgs = {
   domain: Scalars['String']['input'];
   name: Scalars['String']['input'];
+};
+
+
+export type MutationSaveFortnoxTokensArgs = {
+  accessToken: Scalars['String']['input'];
+  companyName: Scalars['String']['input'];
+  expiresAt?: InputMaybe<Scalars['String']['input']>;
+  refreshToken?: InputMaybe<Scalars['String']['input']>;
+  service: Scalars['String']['input'];
 };
 
 export type OnboardResult = {
@@ -117,6 +163,7 @@ export type Query = {
   getImapCredentials?: Maybe<Array<Maybe<ImapCredential>>>;
   getInitPageData: InitPageData;
   getInitPageIntegrationData: InitPageIntegrationData;
+  getSentEmails?: Maybe<Array<Maybe<SentEmail>>>;
   getUsers?: Maybe<Array<Maybe<User>>>;
   getUsersByCompanyId?: Maybe<Array<Maybe<User>>>;
 };
@@ -143,6 +190,13 @@ export type QueryGetImapCredentialsArgs = {
 };
 
 
+export type QueryGetSentEmailsArgs = {
+  companyId: Scalars['String']['input'];
+  credentialId: Scalars['String']['input'];
+  password?: InputMaybe<Scalars['String']['input']>;
+};
+
+
 export type QueryGetUsersArgs = {
   company: Scalars['String']['input'];
 };
@@ -150,6 +204,24 @@ export type QueryGetUsersArgs = {
 
 export type QueryGetUsersByCompanyIdArgs = {
   companyId: Scalars['String']['input'];
+};
+
+export type SentEmail = {
+  __typename: 'SentEmail';
+  date?: Maybe<Scalars['String']['output']>;
+  from?: Maybe<Scalars['String']['output']>;
+  html?: Maybe<Scalars['String']['output']>;
+  subject?: Maybe<Scalars['String']['output']>;
+  text?: Maybe<Scalars['String']['output']>;
+  to?: Maybe<Scalars['String']['output']>;
+  uid: Scalars['Int']['output'];
+};
+
+export type SuperAdminAuthPayload = {
+  __typename: 'SuperAdminAuthPayload';
+  role: Scalars['String']['output'];
+  token: Scalars['String']['output'];
+  userName: Scalars['String']['output'];
 };
 
 export type User = {
@@ -193,6 +265,18 @@ export type CreateCompanyAdminMutationVariables = Exact<{
 
 
 export type CreateCompanyAdminMutation = { createCompanyAdmin: string };
+
+export type AddImapCredentialsMutationVariables = Exact<{
+  companyDomain: Scalars['String']['input'];
+  userEmail: Scalars['String']['input'];
+  imapHost: Scalars['String']['input'];
+  imapPort: Scalars['Int']['input'];
+  emailAddress: Scalars['String']['input'];
+  password: Scalars['String']['input'];
+}>;
+
+
+export type AddImapCredentialsMutation = { addImapCredentials: { __typename: 'ImapCredentialResult', id: string } };
 
 export type GetAllCompaniesQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -257,6 +341,7 @@ export const LoginDocument = {"kind":"Document","definitions":[{"kind":"Operatio
 export const CreateCompanyDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateCompany"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"name"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"domain"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createCompany"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"name"},"value":{"kind":"Variable","name":{"kind":"Name","value":"name"}}},{"kind":"Argument","name":{"kind":"Name","value":"domain"},"value":{"kind":"Variable","name":{"kind":"Name","value":"domain"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"domain"}}]}}]}}]} as unknown as DocumentNode<CreateCompanyMutation, CreateCompanyMutationVariables>;
 export const OnboardCompanyDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"OnboardCompany"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"name"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"domain"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"onboardCompany"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"name"},"value":{"kind":"Variable","name":{"kind":"Name","value":"name"}}},{"kind":"Argument","name":{"kind":"Name","value":"domain"},"value":{"kind":"Variable","name":{"kind":"Name","value":"domain"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"companyId"}},{"kind":"Field","name":{"kind":"Name","value":"message"}}]}}]}}]} as unknown as DocumentNode<OnboardCompanyMutation, OnboardCompanyMutationVariables>;
 export const CreateCompanyAdminDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateCompanyAdmin"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"company"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"email"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"password"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createCompanyAdmin"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"company"},"value":{"kind":"Variable","name":{"kind":"Name","value":"company"}}},{"kind":"Argument","name":{"kind":"Name","value":"email"},"value":{"kind":"Variable","name":{"kind":"Name","value":"email"}}},{"kind":"Argument","name":{"kind":"Name","value":"password"},"value":{"kind":"Variable","name":{"kind":"Name","value":"password"}}}]}]}}]} as unknown as DocumentNode<CreateCompanyAdminMutation, CreateCompanyAdminMutationVariables>;
+export const AddImapCredentialsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"AddImapCredentials"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"companyDomain"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"userEmail"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"imapHost"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"imapPort"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"emailAddress"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"password"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"addImapCredentials"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"companyDomain"},"value":{"kind":"Variable","name":{"kind":"Name","value":"companyDomain"}}},{"kind":"Argument","name":{"kind":"Name","value":"userEmail"},"value":{"kind":"Variable","name":{"kind":"Name","value":"userEmail"}}},{"kind":"Argument","name":{"kind":"Name","value":"imapHost"},"value":{"kind":"Variable","name":{"kind":"Name","value":"imapHost"}}},{"kind":"Argument","name":{"kind":"Name","value":"imapPort"},"value":{"kind":"Variable","name":{"kind":"Name","value":"imapPort"}}},{"kind":"Argument","name":{"kind":"Name","value":"emailAddress"},"value":{"kind":"Variable","name":{"kind":"Name","value":"emailAddress"}}},{"kind":"Argument","name":{"kind":"Name","value":"password"},"value":{"kind":"Variable","name":{"kind":"Name","value":"password"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]} as unknown as DocumentNode<AddImapCredentialsMutation, AddImapCredentialsMutationVariables>;
 export const GetAllCompaniesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetAllCompanies"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getAllCompanies"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"domain"}}]}}]}}]} as unknown as DocumentNode<GetAllCompaniesQuery, GetAllCompaniesQueryVariables>;
 export const GetCompanyByIdDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetCompanyById"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getCompanyById"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"domain"}}]}}]}}]} as unknown as DocumentNode<GetCompanyByIdQuery, GetCompanyByIdQueryVariables>;
 export const GetCompanyByNameDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetCompanyByName"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"name"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getCompanyByName"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"name"},"value":{"kind":"Variable","name":{"kind":"Name","value":"name"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"domain"}}]}}]}}]} as unknown as DocumentNode<GetCompanyByNameQuery, GetCompanyByNameQueryVariables>;

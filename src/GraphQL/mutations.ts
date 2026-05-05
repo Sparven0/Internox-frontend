@@ -61,3 +61,8 @@ export const ADD_IMAP_CREDENTIALS = gql`
     }
   }
 `;
+export const CREATE_USER = gql`
+  mutation CreateUser($email: String!, $password: String!, $companyDomain: String!) {
+    createUser(email: $email, password: $password, companyDomain: $companyDomain) 
+  }
+`;

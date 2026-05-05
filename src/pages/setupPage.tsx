@@ -1,4 +1,3 @@
-
 import { useState, useEffect, type ChangeEvent } from "react";
 import {
   FluentProvider,
@@ -10,13 +9,12 @@ import {
   makeStyles,
   tokens,
 } from "@fluentui/react-components";
-import { ArrowRight20Regular, Checkmark16Regular } from "@fluentui/react-icons";
+import { ArrowRight20Regular, Checkmark16Regular, Add20Regular } from "@fluentui/react-icons";
 import { useMutation } from "@apollo/client/react";
+import { useNavigate } from "@tanstack/react-router";
 import { internoxTheme } from "../theme";
-import "../OnboardingPage.css"
-import { ADD_IMAP_CREDENTIALS } from "../GraphQL/mutations"; // justera sökväg
-
-// I komponenten:
+import { ADD_IMAP_CREDENTIALS, CREATE_USER } from "../GraphQL/mutations";
+import "../OnboardingPage.css";
 
 // ── Types ──────────────────────────────────────────────
 type InputType = "text" | "email" | "password" | "number" | "search" | "tel" | "url";
@@ -35,9 +33,6 @@ type FormState = {
   password: string;
 };
 
-// ── Cookie helper ──────────────────────────────────────
-
-
 // ── FluentUI makeStyles ────────────────────────────────
 const useStyles = makeStyles({
   submitBtn: {
@@ -51,6 +46,12 @@ const useStyles = makeStyles({
     fontWeight: tokens.fontWeightSemibold,
     color: tokens.colorNeutralForeground2,
     fontSize: tokens.fontSizeBase200,
+  },
+  addMoreBtn: {
+    flex: 1,
+  },
+  continueBtn: {
+    flex: 1,
   },
 });
 
@@ -71,8 +72,12 @@ const StepBadge = ({ number, done }: { number: string; done: boolean }) => (
 
 // ── Field definitions ──────────────────────────────────
 const EMPTY_FORM: FormState = {
-  companyDomain: "", userEmail: "", imapHost: "",
-  imapPort: "", emailAddress: "", password: "",
+  companyDomain: "",
+  userEmail: "",
+  imapHost: "",
+  imapPort: "",
+  emailAddress: "",
+  password: "",
 };
 
 const FIELDS: {
@@ -82,9 +87,9 @@ const FIELDS: {
   type: InputType;
   full: boolean;
 }[] = [
-  { name: "companyDomain", label: "Företagsnamn",           placeholder: "foretaget AB",      type: "text",     full: false },
-  { name: "userEmail",     label: "Användarens e-post",      placeholder: "anna@foretaget.se", type: "email",    full: false },
-  { name: "imapHost",      label: "IMAP-server",             placeholder: "imap.foretaget.se", type: "text",     full: false },
+  { name: "companyDomain", label: "Företagsdomän",           placeholder: "foretaget.se",      type: "text",     full: false },
+  { name: "userEmail",     label: "Användarens e-post",      placeholder: "anna@gmail.com",    type: "email",    full: false },
+  { name: "imapHost",      label: "IMAP-server",             placeholder: "imap.gmail.com",    type: "text",     full: false },
   { name: "imapPort",      label: "IMAP-port",               placeholder: "993",               type: "number",   full: false },
   { name: "emailAddress",  label: "E-postadress",            placeholder: "anna@foretaget.se", type: "email",    full: true  },
   { name: "password",      label: "Lösenord / App-lösenord", placeholder: "••••••••••••",      type: "password", full: true  },
@@ -92,14 +97,19 @@ const FIELDS: {
 
 // ── Component ──────────────────────────────────────────
 export default function OnboardingPage() {
-    const [addImapCredentials] = useMutation(ADD_IMAP_CREDENTIALS);
-  const [fortnoxDone, setFortnoxDone] = useState<boolean>(false);
-  const [form, setForm]               = useState<FormState>(EMPTY_FORM);
-  const [loading, setLoading]         = useState<boolean>(false);
-  const [result, setResult]           = useState<AlertResult>(null);
+  const navigate = useNavigate();
+  const [fortnoxDone, setFortnoxDone]   = useState<boolean>(false);
+  const [imapDone, setImapDone]         = useState<boolean>(false);
+  const [addedCount, setAddedCount]     = useState<number>(0);
+  const [form, setForm]                 = useState<FormState>(EMPTY_FORM);
+  const [loading, setLoading]           = useState<boolean>(false);
+  const [result, setResult]             = useState<AlertResult>(null);
 
   const classes = useStyles();
   const isValid = Object.values(form).every((v) => v.trim() !== "");
+
+  const [createUser]          = useMutation(CREATE_USER);
+  const [addImapCredentials]  = useMutation(ADD_IMAP_CREDENTIALS);
 
   useEffect(() => {
     if (localStorage.getItem("jwt_token")) setFortnoxDone(true);
@@ -121,28 +131,58 @@ export default function OnboardingPage() {
   };
 
   const handleSubmit = async () => {
-  if (!isValid) return;
-  setLoading(true);
-  setResult(null);
-  try {
-    await addImapCredentials({
-      variables: {
-        companyDomain: form.companyDomain,
-        userEmail: form.userEmail,
-        imapHost: form.imapHost,
-        imapPort: parseInt(form.imapPort),
-        emailAddress: form.emailAddress,
-        password: form.password,
-      },
-    });
-    setResult({ type: "success", message: "E-postkoppling sparad! Anställd har lagts till." });
+    if (!isValid) return;
+    setLoading(true);
+    setResult(null);
+
+    try {
+      // Steg 1 — skapa användaren (ignorera om den redan finns)
+      try {
+        await createUser({
+          variables: {
+            email: form.userEmail,
+            companyDomain: form.companyDomain,
+            password: form.password,
+          },
+        });
+      } catch (userErr: any) {
+        if (!userErr.message?.includes("Unique constraint")) {
+          throw userErr;
+        }
+      }
+
+      // Steg 2 — lägg till IMAP
+      await addImapCredentials({
+        variables: {
+          companyDomain: form.companyDomain,
+          userEmail: form.userEmail,
+          imapHost: form.imapHost,
+          imapPort: parseInt(form.imapPort),
+          emailAddress: form.emailAddress,
+          password: form.password,
+        },
+      });
+
+      setAddedCount((prev) => prev + 1);
+      setImapDone(true);
+      setResult({ type: "success", message: `${form.userEmail} har lagts till!` });
+      setForm(EMPTY_FORM);
+    } catch (err: any) {
+      setResult({ type: "error", message: err.message ?? "Något gick fel." });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddMore = () => {
+    setResult(null);
     setForm(EMPTY_FORM);
-  } catch (err: any) {
-    setResult({ type: "error", message: err.message ?? "Något gick fel." });
-  } finally {
-    setLoading(false);
-  }
-};
+    // imapDone stays true to keep step 2 highlighted
+  };
+
+  const handleContinue = () => {
+    navigate({ to: "/dashboard" });
+  };
 
   return (
     <FluentProvider theme={internoxTheme}>
@@ -196,55 +236,96 @@ export default function OnboardingPage() {
             </div>
 
             {/* Step 2 — IMAP */}
-            <div className="step-card">
+            <div className={`step-card${imapDone ? " step-card--active" : ""}`}>
               <div className="step-header">
-                <StepBadge number="2" done={false} />
+                <StepBadge number="2" done={imapDone} />
                 <div>
-                  <p className="step-title">Lägg till anställd</p>
-                  <p className="step-desc">Konfigurera e-postkoppling via IMAP</p>
+                  <p className="step-title">Lägg till anställda</p>
+                  <p className="step-desc">
+                    Konfigurera e-postkoppling via IMAP
+                    {addedCount > 0 && (
+                      <span className="step-count"> — {addedCount} tillagd{addedCount !== 1 ? "e" : ""}</span>
+                    )}
+                  </p>
                 </div>
               </div>
               <div className="step-divider" />
               <div className="step-body">
-                <div className="form-grid">
-                  {FIELDS.map((f) => (
-                    <div key={f.name} className={f.full ? "form-grid__full" : ""}>
-                      <Field label={<Text className={classes.fieldLabel}>{f.label}</Text>}>
-                        <Input
-                          name={f.name}
-                          type={f.type}
-                          placeholder={f.placeholder}
-                          value={form[f.name]}
-                          onChange={handleChange}
-                          appearance="outline"
-                        />
-                      </Field>
+
+                {/* ── Success state — add more or continue ── */}
+                {imapDone && result?.type === "success" ? (
+                  <div className="onboarding-decision">
+                    <p className="onboarding-decision__label">
+                      ✓ {result.message}
+                    </p>
+                    <p className="onboarding-decision__question">
+                      Vill du lägga till fler anställda?
+                    </p>
+                    <div className="onboarding-decision__actions">
+                      <Button
+                        appearance="outline"
+                        size="large"
+                        className={classes.addMoreBtn}
+                        icon={<Add20Regular />}
+                        onClick={handleAddMore}
+                      >
+                        Lägg till fler
+                      </Button>
+                      <Button
+                        appearance="primary"
+                        size="large"
+                        className={classes.continueBtn}
+                        icon={<ArrowRight20Regular />}
+                        iconPosition="after"
+                        onClick={handleContinue}
+                      >
+                        Gå till dashboard
+                      </Button>
                     </div>
-                  ))}
-                </div>
-
-                <Button
-                  appearance="primary"
-                  size="large"
-                  className={classes.submitBtn}
-                  onClick={handleSubmit}
-                  disabled={loading || !isValid}
-                  icon={loading ? <Spinner size="tiny" /> : <ArrowRight20Regular />}
-                  iconPosition="after"
-                >
-                  {loading ? "Sparar..." : "Lägg till anställd"}
-                </Button>
-
-                {result && (
-                  <div className={`alert alert--${result.type}`}>
-                    {result.message}
                   </div>
-                )}
+                ) : (
+                  <>
+                    <div className="form-grid">
+                      {FIELDS.map((f) => (
+                        <div key={f.name} className={f.full ? "form-grid__full" : ""}>
+                          <Field label={<Text className={classes.fieldLabel}>{f.label}</Text>}>
+                            <Input
+                              name={f.name}
+                              type={f.type}
+                              placeholder={f.placeholder}
+                              value={form[f.name]}
+                              onChange={handleChange}
+                              appearance="outline"
+                            />
+                          </Field>
+                        </div>
+                      ))}
+                    </div>
 
-                <p className="field-hint">
-                  Lösenordet krypteras och lagras säkert. Använd ett
-                  app-specifikt lösenord om möjligt.
-                </p>
+                    <Button
+                      appearance="primary"
+                      size="large"
+                      className={classes.submitBtn}
+                      onClick={handleSubmit}
+                      disabled={loading || !isValid}
+                      icon={loading ? <Spinner size="tiny" /> : <ArrowRight20Regular />}
+                      iconPosition="after"
+                    >
+                      {loading ? "Sparar..." : "Lägg till anställd"}
+                    </Button>
+
+                    {result?.type === "error" && (
+                      <div className="alert alert--error">
+                        {result.message}
+                      </div>
+                    )}
+
+                    <p className="field-hint">
+                      Lösenordet krypteras och lagras säkert. Använd ett
+                      app-specifikt lösenord om möjligt.
+                    </p>
+                  </>
+                )}
               </div>
             </div>
 
