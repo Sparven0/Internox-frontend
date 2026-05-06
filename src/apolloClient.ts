@@ -15,12 +15,32 @@ export function getAuthToken(): string | null {
   return authToken;
 }
 
-const authLink = new SetContextLink(({ headers }) => ({
-  headers: {
-    ...headers,
-    authorization: authToken ? `Bearer ${authToken}` : "",
-  },
-}));
+let superAdminToken: string | null = null;
+
+export function setSuperAdminToken(token: string | null) {
+  superAdminToken = token;
+}
+
+export function getSuperAdminToken(): string | null {
+  return superAdminToken;
+}
+
+const authLink = new SetContextLink(({ headers }) => {
+  // Prefer an Authorization header already set in context (e.g. super admin token)
+  const contextAuth =
+    (headers as Record<string, string> | undefined)?.Authorization ||
+    (headers as Record<string, string> | undefined)?.authorization;
+  // Normalise to a single lowercase key so duplicate headers aren't sent
+  const allHeaders = (headers ?? {}) as Record<string, string>;
+  const { Authorization: omit, ...restHeaders } = allHeaders;
+  void omit;
+  return {
+    headers: {
+      ...restHeaders,
+      authorization: contextAuth || (authToken ? `Bearer ${authToken}` : ""),
+    },
+  };
+});
 
 const client = new ApolloClient({
   link: authLink.concat(httpLink),
