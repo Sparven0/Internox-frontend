@@ -116,3 +116,13 @@ export const GET_SENT_EMAILS = gql`
     }
   }
 `;
+
+export const GET_ONBOARDING_STATUS = gql`
+  query GetOnboardingStatus {
+    getOnboardingStatus {
+      hasFortnox
+      hasEmployees
+      isComplete
+    }
+  }
+`;
