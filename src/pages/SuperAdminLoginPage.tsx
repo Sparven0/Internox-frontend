@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { useMutation } from "@apollo/client/react";
 import { LoginSuperAdminDocument } from "../__generated__/graphql";
-import { setAuthToken } from "../apolloClient";
+import { setSuperAdminToken } from "../apolloClient";
 import { useNavigate } from "@tanstack/react-router";
 import {
   Button,
@@ -49,8 +49,11 @@ export default function SuperAdminPage() {
         variables: { userName, password },
       });
       if (data) {
-        setAuthToken(data.loginSuperAdmin.token);
-        localStorage.setItem("jwt_token", data.loginSuperAdmin.token);
+        setSuperAdminToken(data.loginSuperAdmin.token);
+        localStorage.setItem(
+          "superadmin_jwt_token",
+          data.loginSuperAdmin.token,
+        );
         navigate({ to: "/superadmin/dashboard" });
       }
     } catch (err) {
