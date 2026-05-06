@@ -1,10 +1,13 @@
 import { useState, type FormEvent } from "react";
-import { useMutation } from "@apollo/client/react";
-import { LoginDocument } from "../__generated__/graphql";
+import { useMutation, useApolloClient } from "@apollo/client/react";
+import {
+  LoginDocument,
+  GetOnboardingStatusDocument,
+  GetUsersByCompanyIdDocument,
+} from "../__generated__/graphql";
 import { useAuth } from "../context/useAuth";
 import { setAuthToken } from "../apolloClient";
 import { useNavigate } from "@tanstack/react-router";
-import { useApolloClient } from "@apollo/client/react";
 
 import {
   Button,
@@ -16,7 +19,6 @@ import {
   tokens,
 } from "@fluentui/react-components";
 import "../LoginPage.css";
-import { GetOnboardingStatusDocument } from "../__generated__/graphql";
 const useStyles = makeStyles({
   input: {
     width: "100%",
@@ -36,7 +38,7 @@ const useStyles = makeStyles({
 });
 
 export default function LoginPage() {
-  const apolloClient = useApolloClient()
+  const apolloClient = useApolloClient();
   const styles = useStyles();
   const { setToken } = useAuth();
   const navigate = useNavigate();
@@ -46,42 +48,54 @@ export default function LoginPage() {
 
   const [login, { loading, error }] = useMutation(LoginDocument);
 
-const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
-  try {
-    const { data } = await login({
-      variables: { email, password, companyDomain },
-    });
-    if (data) {
-      setAuthToken(data.login.token);
-      setToken(data.login.token);
-      localStorage.setItem("jwt_token", data.login.token);
-
-      // Kolla onboarding-status med den nya tokenen
-      const { data: statusData } = await apolloClient.query({
-        query: GetOnboardingStatusDocument,
-        context: {
-          headers: {
-            Authorization: `Bearer ${data.login.token}`,
-          },
-        },
-        fetchPolicy: "network-only",
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    try {
+      const { data } = await login({
+        variables: { email, password, companyDomain },
       });
+      if (data) {
+        setAuthToken(data.login.token);
+        setToken(data.login.token);
+        localStorage.setItem("jwt_token", data.login.token);
 
-      if (statusData?.getOnboardingStatus?.isComplete) {
-        navigate({ to: "/dashboard" });
-      } else {
-        navigate({ to: "/setup" });
+        // Kolla onboarding-status med den nya tokenen
+        const { data: statusData } = await apolloClient.query<{
+          getOnboardingStatus?: {
+            hasFortnox: boolean;
+            hasEmployees: boolean;
+            isComplete: boolean;
+          };
+        }>({
+          query: GetOnboardingStatusDocument,
+          fetchPolicy: "network-only",
+        });
+
+        if (statusData?.getOnboardingStatus?.isComplete) {
+          const { data: usersData } = await apolloClient.query<{
+            getUsersByCompanyId?: { id: string }[];
+          }>({
+            query: GetUsersByCompanyIdDocument,
+            variables: { companyId: data.login.companyId },
+            fetchPolicy: "network-only",
+          });
+
+          if ((usersData?.getUsersByCompanyId?.length ?? 0) > 0) {
+            navigate({ to: "/dashboard" });
+          } else {
+            navigate({ to: "/admin" });
+          }
+        } else {
+          navigate({ to: "/setup" });
+        }
       }
+    } catch (err) {
+      console.error(err);
     }
-  } catch (err) {
-    console.error(err);
-  }
-};
+  };
 
   return (
     <div className="login-page">
-
       {/* ── Left panel — visual ── */}
       <div className="login-visual" aria-hidden="true">
         <div className="login-visual__noise" />
@@ -115,7 +129,6 @@ const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
       {/* ── Right panel — form ── */}
       <div className="login-form-panel">
         <div className="login-form-inner">
-
           <div className="login-form-header">
             <h1 className="login-form-title">Logga in</h1>
             <p className="login-form-sub">
@@ -179,7 +192,6 @@ const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
           </p>
         </div>
       </div>
-
     </div>
   );
 }
