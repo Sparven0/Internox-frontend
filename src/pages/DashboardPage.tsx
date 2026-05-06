@@ -19,7 +19,6 @@ import {
   type GetInitPageIntegrationDataQueryVariables,
 } from "../__generated__/graphql";
 
-// Concrete shapes for the JSON scalar fields
 interface Customer {
   name: string;
   email: string;

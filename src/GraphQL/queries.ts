@@ -94,3 +94,25 @@ export const GET_FORTNOX_DATA = gql`
     getFortnoxData(companyId: $companyId, endpoint: $endpoint)
   }
 `;
+
+export const GET_SENT_EMAILS = gql`
+  query GetSentEmails(
+    $companyId: String!
+    $credentialId: String!
+    $password: String
+  ) {
+    getSentEmails(
+      companyId: $companyId
+      credentialId: $credentialId
+      password: $password
+    ) {
+      uid
+      subject
+      from
+      to
+      date
+      text
+      html
+    }
+  }
+`;

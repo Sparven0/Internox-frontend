@@ -40,3 +40,73 @@ export const CREATE_COMPANY_ADMIN = gql`
     createCompanyAdmin(company: $company, email: $email, password: $password)
   }
 `;
+
+export const CREATE_USER = gql`
+  mutation CreateUser(
+    $companyDomain: String!
+    $email: String!
+    $password: String!
+  ) {
+    createUser(
+      companyDomain: $companyDomain
+      email: $email
+      password: $password
+    )
+  }
+`;
+
+export const ADD_IMAP_CREDENTIALS = gql`
+  mutation AddImapCredentials(
+    $companyDomain: String!
+    $userEmail: String!
+    $emailAddress: String!
+    $imapHost: String!
+    $imapPort: Int
+    $password: String!
+  ) {
+    addImapCredentials(
+      companyDomain: $companyDomain
+      userEmail: $userEmail
+      emailAddress: $emailAddress
+      imapHost: $imapHost
+      imapPort: $imapPort
+      password: $password
+    ) {
+      id
+    }
+  }
+`;
+
+export const LOGIN_SUPER_ADMIN = gql`
+  mutation LoginSuperAdmin($userName: String!, $password: String!) {
+    loginSuperAdmin(userName: $userName, password: $password) {
+      token
+      userName
+      role
+    }
+  }
+`;
+
+export const CREATE_ADMIN = gql`
+  mutation CreateAdmin($userName: String!, $password: String!) {
+    createAdmin(userName: $userName, password: $password)
+  }
+`;
+
+export const SAVE_FORTNOX_TOKENS = gql`
+  mutation SaveFortnoxTokens(
+    $companyName: String!
+    $service: String!
+    $accessToken: String!
+    $refreshToken: String
+    $expiresAt: String
+  ) {
+    saveFortnoxTokens(
+      companyName: $companyName
+      service: $service
+      accessToken: $accessToken
+      refreshToken: $refreshToken
+      expiresAt: $expiresAt
+    )
+  }
+`;
