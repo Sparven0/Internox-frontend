@@ -13,7 +13,7 @@ import {
   PageError,
 } from "./components/RootFallbacks";
 
-import { getAuthToken } from "./apolloClient";
+import { getAuthToken, getSuperAdminToken } from "./apolloClient";
 
 const rootRoute = createRootRoute({
   component: Outlet,
@@ -55,6 +55,27 @@ const adminRoute = createRoute({
   errorComponent: PageError,
 });
 
+const superAdminLoginRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/superadmin",
+  component: lazy(() => import("./pages/SuperAdminLoginPage")),
+  pendingComponent: PagePending,
+  errorComponent: PageError,
+});
+
+const superAdminDashboardRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/superadmin/dashboard",
+  beforeLoad: () => {
+    if (!getSuperAdminToken()) {
+      throw redirect({ to: "/superadmin" });
+    }
+  },
+  component: lazy(() => import("./pages/SuperAdminDashboardPage")),
+  pendingComponent: PagePending,
+  errorComponent: PageError,
+});
+
 const setupRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/setup",
@@ -68,12 +89,13 @@ const setupRoute = createRoute({
   errorComponent: PageError,
 });
 
-
 const routeTree = rootRoute.addChildren([
   loginRoute,
   dashboardRoute,
   adminRoute,
-  setupRoute
+  superAdminLoginRoute,
+  superAdminDashboardRoute,
+  setupRoute,
 ]);
 
 export const router = createRouter({ routeTree });
