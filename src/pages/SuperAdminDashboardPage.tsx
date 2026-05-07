@@ -4,6 +4,7 @@ import {
   CreateCompanyDocument,
   CreateCompanyAdminDocument,
   GetAllCompaniesDocument,
+  RemoveCompanyDocument,
 } from "../__generated__/graphql";
 import { getSuperAdminToken } from "../apolloClient";
 import {
@@ -43,6 +44,7 @@ import {
   AddRegular,
   MoreHorizontalRegular,
   PersonAddFilled,
+  DeleteFilled,
 } from "@fluentui/react-icons";
 
 const useStyles = makeStyles({
@@ -272,14 +274,92 @@ function AddCompanyAdminDialog({
   );
 }
 
-function CompanyRowActions({
+function DeleteCompanyDialog({
+  open,
+  onOpenChange,
+  companyId,
   companyName,
   authContext,
+  onDeleted,
 }: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  companyId: string;
   companyName: string;
   authContext: { headers: { Authorization: string } };
+  onDeleted: () => void;
+}) {
+  const [removeCompany, { loading, error }] = useMutation(
+    RemoveCompanyDocument,
+  );
+
+  const handleDelete = async () => {
+    try {
+      await removeCompany({
+        variables: { companyId },
+        context: authContext,
+      });
+      onOpenChange(false);
+      onDeleted();
+    } catch {
+      // error displayed via error state
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(_, d) => onOpenChange(d.open)}>
+      <DialogSurface>
+        <DialogBody>
+          <DialogTitle style={{ color: tokens.colorNeutralForeground1 }}>
+            Ta bort företag
+          </DialogTitle>
+          <DialogContent>
+            <Text>
+              Är du säker på att du vill ta bort{" "}
+              <Text weight="semibold">{companyName}</Text>? Detta kan inte
+              ångras.
+            </Text>
+            {error && (
+              <MessageBar intent="error" style={{ marginTop: "12px" }}>
+                <MessageBarBody>{error.message}</MessageBarBody>
+              </MessageBar>
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button appearance="secondary" onClick={() => onOpenChange(false)}>
+              Avbryt
+            </Button>
+            <Button
+              appearance="primary"
+              style={{
+                backgroundColor: tokens.colorPaletteRedBackground3,
+                color: tokens.colorNeutralForegroundOnBrand,
+              }}
+              disabled={loading}
+              onClick={handleDelete}
+            >
+              {loading ? <Spinner size="tiny" /> : "Ta bort"}
+            </Button>
+          </DialogActions>
+        </DialogBody>
+      </DialogSurface>
+    </Dialog>
+  );
+}
+
+function CompanyRowActions({
+  companyId,
+  companyName,
+  authContext,
+  onDeleted,
+}: {
+  companyId: string;
+  companyName: string;
+  authContext: { headers: { Authorization: string } };
+  onDeleted: () => void;
 }) {
   const [addAdminOpen, setAddAdminOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   return (
     <>
@@ -299,6 +379,12 @@ function CompanyRowActions({
             >
               Lägg till företagsadmin
             </MenuItem>
+            <MenuItem
+              icon={<DeleteFilled />}
+              onClick={() => setDeleteOpen(true)}
+            >
+              Ta bort företag
+            </MenuItem>
           </MenuList>
         </MenuPopover>
       </Menu>
@@ -307,6 +393,14 @@ function CompanyRowActions({
         onOpenChange={setAddAdminOpen}
         companyName={companyName}
         authContext={authContext}
+      />
+      <DeleteCompanyDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        companyId={companyId}
+        companyName={companyName}
+        authContext={authContext}
+        onDeleted={onDeleted}
       />
     </>
   );
@@ -633,8 +727,10 @@ export default function SuperAdminDashboardPage() {
                         </TableCell>
                         <TableCell style={{ textAlign: "center" }}>
                           <CompanyRowActions
+                            companyId={c.id}
                             companyName={c.name}
                             authContext={authContext}
+                            onDeleted={() => refetch()}
                           />
                         </TableCell>
                       </TableRow>
