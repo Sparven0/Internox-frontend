@@ -93,6 +93,12 @@ export const CREATE_ADMIN = gql`
   }
 `;
 
+export const REMOVE_COMPANY = gql`
+  mutation RemoveCompany($companyId: ID!) {
+    removeCompany(companyId: $companyId)
+  }
+`;
+
 export const SAVE_FORTNOX_TOKENS = gql`
   mutation SaveFortnoxTokens(
     $companyName: String!

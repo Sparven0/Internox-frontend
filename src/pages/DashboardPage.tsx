@@ -15,7 +15,10 @@ import {
   ArrowClockwise20Regular,
 } from "@fluentui/react-icons";
 import { internoxTheme } from "../theme";
-import { GetInitPageDataDocument, GetInitPageIntegrationDataDocument } from "../__generated__/graphql";
+import {
+  GetInitPageDataDocument,
+  GetInitPageIntegrationDataDocument,
+} from "../__generated__/graphql";
 import { useAuth } from "../context/useAuth";
 import { setAuthToken } from "../apolloClient";
 import "../DashboardPage.css";
@@ -27,20 +30,34 @@ const useStyles = makeStyles({
 });
 
 export default function DashboardPage() {
-  const classes   = useStyles();
-  const navigate  = useNavigate();
+  const classes = useStyles();
+  const navigate = useNavigate();
   const { setToken } = useAuth();
 
-  const { data: pageData, loading: pageLoading } = useQuery(GetInitPageDataDocument);
-  const { data: integrationData, loading: integrationLoading, refetch } = useQuery(GetInitPageIntegrationDataDocument);
+  const { data: pageData, loading: pageLoading } = useQuery(
+    GetInitPageDataDocument,
+  );
+  const {
+    data: integrationData,
+    loading: integrationLoading,
+    refetch,
+  } = useQuery(GetInitPageIntegrationDataDocument);
 
-  const company   = pageData?.getInitPageData?.company;
-  const users     = pageData?.getInitPageData?.users ?? [];
+  const company = pageData?.getInitPageData?.company;
+  const users = pageData?.getInitPageData?.users ?? [];
   const customers = integrationData?.getInitPageIntegrationData?.customers;
-  const emails    = integrationData?.getInitPageIntegrationData?.emails;
+  const emails = integrationData?.getInitPageIntegrationData?.emails;
 
-  const customerList: any[] = Array.isArray(customers) ? customers : [];
-  const emailList: any[]    = Array.isArray(emails) ? emails : [];
+  const customerList: Array<{ name?: string; email?: string }> = Array.isArray(
+    customers,
+  )
+    ? customers
+    : [];
+  const emailList: Array<{
+    userId: string | number;
+    emails?: string[];
+    error?: string;
+  }> = Array.isArray(emails) ? emails : [];
 
   const handleLogout = () => {
     setToken(null);
@@ -52,7 +69,6 @@ export default function DashboardPage() {
   return (
     <FluentProvider theme={internoxTheme}>
       <div className="dashboard">
-
         {/* ── Sidebar ── */}
         <aside className="dashboard-sidebar">
           <div className="dashboard-sidebar__top">
@@ -69,13 +85,16 @@ export default function DashboardPage() {
             )}
 
             <nav className="dashboard-nav">
-              <a href="#users"     className="dashboard-nav__item dashboard-nav__item--active">
+              <a
+                href="#users"
+                className="dashboard-nav__item dashboard-nav__item--active"
+              >
                 <PeopleCommunity20Regular /> Anställda
               </a>
               <a href="#customers" className="dashboard-nav__item">
                 <Building20Regular /> Kunder
               </a>
-              <a href="#emails"    className="dashboard-nav__item">
+              <a href="#emails" className="dashboard-nav__item">
                 <Mail20Regular /> E-post
               </a>
             </nav>
@@ -89,7 +108,6 @@ export default function DashboardPage() {
 
         {/* ── Main content ── */}
         <main className="dashboard-main">
-
           {/* Header */}
           <div className="dashboard-topbar">
             <div>
@@ -157,7 +175,9 @@ export default function DashboardPage() {
                       <span>{u.email}</span>
                     </div>
                     <div className="dashboard-table__cell">
-                      <span className={`dashboard-badge dashboard-badge--${u.role}`}>
+                      <span
+                        className={`dashboard-badge dashboard-badge--${u.role}`}
+                      >
                         {u.role}
                       </span>
                     </div>
@@ -185,7 +205,9 @@ export default function DashboardPage() {
                 {customers}
               </div>
             ) : customerList.length === 0 ? (
-              <div className="dashboard-empty">Inga kunder hittades i Fortnox.</div>
+              <div className="dashboard-empty">
+                Inga kunder hittades i Fortnox.
+              </div>
             ) : (
               <div className="dashboard-table">
                 <div className="dashboard-table__head">
@@ -227,7 +249,9 @@ export default function DashboardPage() {
                 {emails}
               </div>
             ) : emailList.length === 0 ? (
-              <div className="dashboard-empty">Ingen e-postaktivitet hittades.</div>
+              <div className="dashboard-empty">
+                Ingen e-postaktivitet hittades.
+              </div>
             ) : (
               <div className="dashboard-email-list">
                 {emailList.map((entry, i) => (
@@ -238,18 +262,20 @@ export default function DashboardPage() {
                         Användare {entry.userId}
                       </span>
                       <span className="dashboard-email-entry__count">
-                        {Array.isArray(entry.emails) ? entry.emails.length : 0} mejl
+                        {Array.isArray(entry.emails) ? entry.emails.length : 0}{" "}
+                        mejl
                       </span>
                     </div>
                     {entry.error && (
-                      <p className="dashboard-email-entry__error">{entry.error}</p>
+                      <p className="dashboard-email-entry__error">
+                        {entry.error}
+                      </p>
                     )}
                   </div>
                 ))}
               </div>
             )}
           </section>
-
         </main>
       </div>
     </FluentProvider>
