@@ -1,5 +1,5 @@
 import { useQuery } from "@apollo/client/react";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, Link } from "@tanstack/react-router";
 import {
   FluentProvider,
   makeStyles,
@@ -13,6 +13,7 @@ import {
   Person20Regular,
   SignOut20Regular,
   ArrowClockwise20Regular,
+  DocumentTable20Regular,
 } from "@fluentui/react-icons";
 import { internoxTheme } from "../theme";
 import {
@@ -97,6 +98,9 @@ export default function DashboardPage() {
               <a href="#emails" className="dashboard-nav__item">
                 <Mail20Regular /> E-post
               </a>
+              <Link to="/bookkeeping" className="dashboard-nav__item">
+                <DocumentTable20Regular /> Bokföring
+              </Link>
             </nav>
           </div>
 

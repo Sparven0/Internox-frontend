@@ -89,6 +89,19 @@ const setupRoute = createRoute({
   errorComponent: PageError,
 });
 
+const bookkeepingRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/bookkeeping",
+  beforeLoad: () => {
+    if (!getAuthToken()) {
+      throw redirect({ to: "/" });
+    }
+  },
+  component: lazy(() => import("./pages/BookkeepingPage")),
+  pendingComponent: PagePending,
+  errorComponent: PageError,
+});
+
 const routeTree = rootRoute.addChildren([
   loginRoute,
   dashboardRoute,
@@ -96,6 +109,7 @@ const routeTree = rootRoute.addChildren([
   superAdminLoginRoute,
   superAdminDashboardRoute,
   setupRoute,
+  bookkeepingRoute,
 ]);
 
 export const router = createRouter({ routeTree });

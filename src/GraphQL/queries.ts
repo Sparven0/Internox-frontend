@@ -126,3 +126,63 @@ export const GET_ONBOARDING_STATUS = gql`
     }
   }
 `;
+
+export const GET_FINANCIAL_YEARS = gql`
+  query GetFinancialYears {
+    getFinancialYears {
+      id
+      fortnoxId
+      fromDate
+      toDate
+      accountChartType
+      accountingMethod
+    }
+  }
+`;
+
+export const GET_ACCOUNTS = gql`
+  query GetAccounts($financialYearId: ID!) {
+    getAccounts(financialYearId: $financialYearId) {
+      accountNumber
+      description
+      active
+      balanceBroughtForward
+      balanceCarriedForward
+      vatCode
+    }
+  }
+`;
+
+export const GET_VOUCHERS = gql`
+  query GetVouchers($financialYearId: ID!, $page: Int, $limit: Int) {
+    getVouchers(financialYearId: $financialYearId, page: $page, limit: $limit) {
+      id
+      voucherSeries
+      voucherNumber
+      transactionDate
+      description
+      referenceType
+      referenceNumber
+    }
+  }
+`;
+
+export const GET_VOUCHER_DETAIL = gql`
+  query GetVoucherDetail($voucherId: ID!) {
+    getVoucherDetail(voucherId: $voucherId) {
+      id
+      voucherSeries
+      voucherNumber
+      transactionDate
+      description
+      referenceType
+      referenceNumber
+      rows {
+        accountNumber
+        debit
+        credit
+        description
+      }
+    }
+  }
+`;

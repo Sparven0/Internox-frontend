@@ -32,6 +32,57 @@ export type Company = {
   name: Scalars['String']['output'];
 };
 
+export type FortnoxAccount = {
+  __typename: 'FortnoxAccount';
+  accountNumber: Scalars['Int']['output'];
+  active: Scalars['Boolean']['output'];
+  balanceBroughtForward?: Maybe<Scalars['Float']['output']>;
+  balanceCarriedForward?: Maybe<Scalars['Float']['output']>;
+  description?: Maybe<Scalars['String']['output']>;
+  vatCode?: Maybe<Scalars['String']['output']>;
+};
+
+export type FortnoxFinancialYear = {
+  __typename: 'FortnoxFinancialYear';
+  accountChartType?: Maybe<Scalars['String']['output']>;
+  accountingMethod?: Maybe<Scalars['String']['output']>;
+  fortnoxId: Scalars['Int']['output'];
+  fromDate: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  toDate: Scalars['String']['output'];
+};
+
+export type FortnoxVoucher = {
+  __typename: 'FortnoxVoucher';
+  description?: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  referenceNumber?: Maybe<Scalars['String']['output']>;
+  referenceType?: Maybe<Scalars['String']['output']>;
+  transactionDate: Scalars['String']['output'];
+  voucherNumber: Scalars['Int']['output'];
+  voucherSeries: Scalars['String']['output'];
+};
+
+export type FortnoxVoucherDetail = {
+  __typename: 'FortnoxVoucherDetail';
+  description?: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  referenceNumber?: Maybe<Scalars['String']['output']>;
+  referenceType?: Maybe<Scalars['String']['output']>;
+  rows: Array<FortnoxVoucherRow>;
+  transactionDate: Scalars['String']['output'];
+  voucherNumber: Scalars['Int']['output'];
+  voucherSeries: Scalars['String']['output'];
+};
+
+export type FortnoxVoucherRow = {
+  __typename: 'FortnoxVoucherRow';
+  accountNumber: Scalars['Int']['output'];
+  credit?: Maybe<Scalars['Float']['output']>;
+  debit?: Maybe<Scalars['Float']['output']>;
+  description?: Maybe<Scalars['String']['output']>;
+};
+
 export type ImapCredential = {
   __typename: 'ImapCredential';
   email_address: Scalars['String']['output'];
@@ -169,9 +220,11 @@ export type OnboardingStatus = {
 
 export type Query = {
   __typename: 'Query';
+  getAccounts: Array<FortnoxAccount>;
   getAllCompanies?: Maybe<Array<Maybe<Company>>>;
   getCompanyById?: Maybe<Company>;
   getCompanyByName?: Maybe<Company>;
+  getFinancialYears: Array<FortnoxFinancialYear>;
   getFortnoxData?: Maybe<Scalars['JSON']['output']>;
   getImapCredentials?: Maybe<Array<Maybe<ImapCredential>>>;
   getInitPageData: InitPageData;
@@ -180,6 +233,13 @@ export type Query = {
   getSentEmails?: Maybe<Array<Maybe<SentEmail>>>;
   getUsers?: Maybe<Array<Maybe<User>>>;
   getUsersByCompanyId?: Maybe<Array<Maybe<User>>>;
+  getVoucherDetail?: Maybe<FortnoxVoucherDetail>;
+  getVouchers: Array<FortnoxVoucher>;
+};
+
+
+export type QueryGetAccountsArgs = {
+  financialYearId: Scalars['ID']['input'];
 };
 
 
@@ -218,6 +278,18 @@ export type QueryGetUsersArgs = {
 
 export type QueryGetUsersByCompanyIdArgs = {
   companyId: Scalars['String']['input'];
+};
+
+
+export type QueryGetVoucherDetailArgs = {
+  voucherId: Scalars['ID']['input'];
+};
+
+
+export type QueryGetVouchersArgs = {
+  financialYearId: Scalars['ID']['input'];
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  page?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type SentEmail = {
@@ -407,6 +479,34 @@ export type GetOnboardingStatusQueryVariables = Exact<{ [key: string]: never; }>
 
 export type GetOnboardingStatusQuery = { getOnboardingStatus: { __typename: 'OnboardingStatus', hasFortnox: boolean, hasEmployees: boolean, isComplete: boolean } };
 
+export type GetFinancialYearsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetFinancialYearsQuery = { getFinancialYears: Array<{ __typename: 'FortnoxFinancialYear', id: string, fortnoxId: number, fromDate: string, toDate: string, accountChartType?: string | null, accountingMethod?: string | null }> };
+
+export type GetAccountsQueryVariables = Exact<{
+  financialYearId: Scalars['ID']['input'];
+}>;
+
+
+export type GetAccountsQuery = { getAccounts: Array<{ __typename: 'FortnoxAccount', accountNumber: number, description?: string | null, active: boolean, balanceBroughtForward?: number | null, balanceCarriedForward?: number | null, vatCode?: string | null }> };
+
+export type GetVouchersQueryVariables = Exact<{
+  financialYearId: Scalars['ID']['input'];
+  page?: InputMaybe<Scalars['Int']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+
+export type GetVouchersQuery = { getVouchers: Array<{ __typename: 'FortnoxVoucher', id: string, voucherSeries: string, voucherNumber: number, transactionDate: string, description?: string | null, referenceType?: string | null, referenceNumber?: string | null }> };
+
+export type GetVoucherDetailQueryVariables = Exact<{
+  voucherId: Scalars['ID']['input'];
+}>;
+
+
+export type GetVoucherDetailQuery = { getVoucherDetail?: { __typename: 'FortnoxVoucherDetail', id: string, voucherSeries: string, voucherNumber: number, transactionDate: string, description?: string | null, referenceType?: string | null, referenceNumber?: string | null, rows: Array<{ __typename: 'FortnoxVoucherRow', accountNumber: number, debit?: number | null, credit?: number | null, description?: string | null }> } | null };
+
 
 export const LoginDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"Login"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"email"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"password"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"companyDomain"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"login"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"email"},"value":{"kind":"Variable","name":{"kind":"Name","value":"email"}}},{"kind":"Argument","name":{"kind":"Name","value":"password"},"value":{"kind":"Variable","name":{"kind":"Name","value":"password"}}},{"kind":"Argument","name":{"kind":"Name","value":"companyDomain"},"value":{"kind":"Variable","name":{"kind":"Name","value":"companyDomain"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"token"}},{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"email"}},{"kind":"Field","name":{"kind":"Name","value":"role"}},{"kind":"Field","name":{"kind":"Name","value":"companyId"}}]}}]}}]} as unknown as DocumentNode<LoginMutation, LoginMutationVariables>;
 export const CreateCompanyDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateCompany"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"name"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"domain"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createCompany"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"name"},"value":{"kind":"Variable","name":{"kind":"Name","value":"name"}}},{"kind":"Argument","name":{"kind":"Name","value":"domain"},"value":{"kind":"Variable","name":{"kind":"Name","value":"domain"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"domain"}}]}}]}}]} as unknown as DocumentNode<CreateCompanyMutation, CreateCompanyMutationVariables>;
@@ -429,3 +529,7 @@ export const GetInitPageIntegrationDataDocument = {"kind":"Document","definition
 export const GetFortnoxDataDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetFortnoxData"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"companyId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"endpoint"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getFortnoxData"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"companyId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"companyId"}}},{"kind":"Argument","name":{"kind":"Name","value":"endpoint"},"value":{"kind":"Variable","name":{"kind":"Name","value":"endpoint"}}}]}]}}]} as unknown as DocumentNode<GetFortnoxDataQuery, GetFortnoxDataQueryVariables>;
 export const GetSentEmailsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetSentEmails"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"companyId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"credentialId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"password"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getSentEmails"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"companyId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"companyId"}}},{"kind":"Argument","name":{"kind":"Name","value":"credentialId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"credentialId"}}},{"kind":"Argument","name":{"kind":"Name","value":"password"},"value":{"kind":"Variable","name":{"kind":"Name","value":"password"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"uid"}},{"kind":"Field","name":{"kind":"Name","value":"subject"}},{"kind":"Field","name":{"kind":"Name","value":"from"}},{"kind":"Field","name":{"kind":"Name","value":"to"}},{"kind":"Field","name":{"kind":"Name","value":"date"}},{"kind":"Field","name":{"kind":"Name","value":"text"}},{"kind":"Field","name":{"kind":"Name","value":"html"}}]}}]}}]} as unknown as DocumentNode<GetSentEmailsQuery, GetSentEmailsQueryVariables>;
 export const GetOnboardingStatusDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetOnboardingStatus"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getOnboardingStatus"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"hasFortnox"}},{"kind":"Field","name":{"kind":"Name","value":"hasEmployees"}},{"kind":"Field","name":{"kind":"Name","value":"isComplete"}}]}}]}}]} as unknown as DocumentNode<GetOnboardingStatusQuery, GetOnboardingStatusQueryVariables>;
+export const GetFinancialYearsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetFinancialYears"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getFinancialYears"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"fortnoxId"}},{"kind":"Field","name":{"kind":"Name","value":"fromDate"}},{"kind":"Field","name":{"kind":"Name","value":"toDate"}},{"kind":"Field","name":{"kind":"Name","value":"accountChartType"}},{"kind":"Field","name":{"kind":"Name","value":"accountingMethod"}}]}}]}}]} as unknown as DocumentNode<GetFinancialYearsQuery, GetFinancialYearsQueryVariables>;
+export const GetAccountsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetAccounts"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"financialYearId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getAccounts"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"financialYearId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"financialYearId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"accountNumber"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"active"}},{"kind":"Field","name":{"kind":"Name","value":"balanceBroughtForward"}},{"kind":"Field","name":{"kind":"Name","value":"balanceCarriedForward"}},{"kind":"Field","name":{"kind":"Name","value":"vatCode"}}]}}]}}]} as unknown as DocumentNode<GetAccountsQuery, GetAccountsQueryVariables>;
+export const GetVouchersDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetVouchers"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"financialYearId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"page"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"limit"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getVouchers"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"financialYearId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"financialYearId"}}},{"kind":"Argument","name":{"kind":"Name","value":"page"},"value":{"kind":"Variable","name":{"kind":"Name","value":"page"}}},{"kind":"Argument","name":{"kind":"Name","value":"limit"},"value":{"kind":"Variable","name":{"kind":"Name","value":"limit"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"voucherSeries"}},{"kind":"Field","name":{"kind":"Name","value":"voucherNumber"}},{"kind":"Field","name":{"kind":"Name","value":"transactionDate"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"referenceType"}},{"kind":"Field","name":{"kind":"Name","value":"referenceNumber"}}]}}]}}]} as unknown as DocumentNode<GetVouchersQuery, GetVouchersQueryVariables>;
+export const GetVoucherDetailDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetVoucherDetail"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"voucherId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getVoucherDetail"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"voucherId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"voucherId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"voucherSeries"}},{"kind":"Field","name":{"kind":"Name","value":"voucherNumber"}},{"kind":"Field","name":{"kind":"Name","value":"transactionDate"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"referenceType"}},{"kind":"Field","name":{"kind":"Name","value":"referenceNumber"}},{"kind":"Field","name":{"kind":"Name","value":"rows"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"accountNumber"}},{"kind":"Field","name":{"kind":"Name","value":"debit"}},{"kind":"Field","name":{"kind":"Name","value":"credit"}},{"kind":"Field","name":{"kind":"Name","value":"description"}}]}}]}}]}}]} as unknown as DocumentNode<GetVoucherDetailQuery, GetVoucherDetailQueryVariables>;
