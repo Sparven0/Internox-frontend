@@ -1,8 +1,9 @@
 import { ApolloClient, InMemoryCache, HttpLink } from "@apollo/client";
 import { SetContextLink } from "@apollo/client/link/context";
+import { BACKEND_ORIGIN } from "./backendOrigin";
 
 const httpLink = new HttpLink({
-  uri: "http://localhost:1222/graphql",
+  uri: `${BACKEND_ORIGIN}/graphql`,
 });
 
 let authToken: string | null = null;

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@apollo/client/react";
 import { useNavigate, Link } from "@tanstack/react-router";
 import {
@@ -15,15 +15,18 @@ import {
   SignOut20Regular,
   ArrowClockwise20Regular,
   DocumentTable20Regular,
+  PlugConnected20Regular,
 } from "@fluentui/react-icons";
 import { internoxTheme } from "../theme";
 import {
   GetInitPageDataDocument,
   GetInitPageIntegrationDataDocument,
   GetAllCustomersDocument,
+  GetOnboardingStatusDocument,
 } from "../__generated__/graphql";
 import { useAuth } from "../context/useAuth";
 import { setAuthToken } from "../apolloClient";
+import { fortnoxAuthUrl } from "../backendOrigin";
 import EmployeeCustomerPanel from "../components/EmployeeCustomerPanel";
 import "../DashboardPage.css";
 
@@ -52,6 +55,7 @@ export default function DashboardPage() {
   const { data: customersData, loading: customersLoading } = useQuery(
     GetAllCustomersDocument,
   );
+  const { data: onboardingData } = useQuery(GetOnboardingStatusDocument);
 
   const company = pageData?.getInitPageData?.company;
   const users = pageData?.getInitPageData?.users ?? [];
@@ -70,6 +74,20 @@ export default function DashboardPage() {
     localStorage.removeItem("jwt_token");
     navigate({ to: "/" });
   };
+
+  const handleOpenFortnoxConnect = () => {
+    const token = localStorage.getItem("jwt_token");
+    if (!token) return;
+    window.open(fortnoxAuthUrl(token), "_blank", "noopener,noreferrer");
+  };
+
+  const showFortnoxConnect =
+    onboardingData?.getOnboardingStatus?.hasFortnox === false;
+  const hasFortnox = onboardingData?.getOnboardingStatus?.hasFortnox;
+
+  useEffect(() => {
+    console.log("hasFortnox", hasFortnox);
+  }, [hasFortnox]);
 
   return (
     <FluentProvider theme={internoxTheme}>
@@ -108,10 +126,22 @@ export default function DashboardPage() {
             </nav>
           </div>
 
-          <button className="dashboard-logout" onClick={handleLogout}>
-            <SignOut20Regular />
-            Logga ut
-          </button>
+          <div className="dashboard-sidebar__bottom">
+            {showFortnoxConnect && (
+              <button
+                type="button"
+                className="dashboard-fortnox"
+                onClick={handleOpenFortnoxConnect}
+              >
+                <PlugConnected20Regular />
+                Koppla Fortnox
+              </button>
+            )}
+            <button className="dashboard-logout" onClick={handleLogout}>
+              <SignOut20Regular />
+              Logga ut
+            </button>
+          </div>
         </aside>
 
         {/* ── Main content ── */}

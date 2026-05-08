@@ -105,6 +105,37 @@
   color: #00c06b;
 }
 
+/* Sidebar footer: Fortnox + logout */
+.dashboard-sidebar__bottom {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.dashboard-fortnox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(0, 192, 107, 0.85);
+  background: rgba(0, 192, 107, 0.1);
+  border: 1px solid rgba(0, 192, 107, 0.28);
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
+  font-family: 'DM Sans', sans-serif;
+  width: 100%;
+  text-align: left;
+}
+
+.dashboard-fortnox:hover {
+  color: #5ee9a8;
+  background: rgba(0, 192, 107, 0.16);
+  border-color: rgba(0, 192, 107, 0.42);
+}
+
 /* Logout */
 .dashboard-logout {
   display: flex;
