@@ -14,14 +14,17 @@ import {
   SignOut20Regular,
   ArrowClockwise20Regular,
   DocumentTable20Regular,
+  PlugConnected20Regular,
 } from "@fluentui/react-icons";
 import { internoxTheme } from "../theme";
 import {
   GetInitPageDataDocument,
   GetInitPageIntegrationDataDocument,
+  GetOnboardingStatusDocument,
 } from "../__generated__/graphql";
 import { useAuth } from "../context/useAuth";
 import { setAuthToken } from "../apolloClient";
+import { fortnoxAuthUrl } from "../backendOrigin";
 import "../DashboardPage.css";
 
 const useStyles = makeStyles({
@@ -43,6 +46,7 @@ export default function DashboardPage() {
     loading: integrationLoading,
     refetch,
   } = useQuery(GetInitPageIntegrationDataDocument);
+  const { data: onboardingData } = useQuery(GetOnboardingStatusDocument);
 
   const company = pageData?.getInitPageData?.company;
   const users = pageData?.getInitPageData?.users ?? [];
@@ -66,6 +70,15 @@ export default function DashboardPage() {
     localStorage.removeItem("jwt_token");
     navigate({ to: "/" });
   };
+
+  const handleOpenFortnoxConnect = () => {
+    const token = localStorage.getItem("jwt_token");
+    if (!token) return;
+    window.open(fortnoxAuthUrl(token), "_blank", "noopener,noreferrer");
+  };
+
+  const showFortnoxConnect =
+    onboardingData?.getOnboardingStatus?.hasFortnox === false;
 
   return (
     <FluentProvider theme={internoxTheme}>
@@ -104,10 +117,22 @@ export default function DashboardPage() {
             </nav>
           </div>
 
-          <button className="dashboard-logout" onClick={handleLogout}>
-            <SignOut20Regular />
-            Logga ut
-          </button>
+          <div className="dashboard-sidebar__bottom">
+            {showFortnoxConnect && (
+              <button
+                type="button"
+                className="dashboard-fortnox"
+                onClick={handleOpenFortnoxConnect}
+              >
+                <PlugConnected20Regular />
+                Koppla Fortnox
+              </button>
+            )}
+            <button className="dashboard-logout" onClick={handleLogout}>
+              <SignOut20Regular />
+              Logga ut
+            </button>
+          </div>
         </aside>
 
         {/* ── Main content ── */}

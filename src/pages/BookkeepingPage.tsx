@@ -6,6 +6,7 @@ import {
   Building20Regular,
   SignOut20Regular,
   DocumentTable20Regular,
+  PlugConnected20Regular,
   ChevronLeft20Regular,
   ChevronRight20Regular,
   ChevronDown20Regular,
@@ -20,9 +21,11 @@ import {
   GetAccountsDocument,
   GetVouchersDocument,
   GetVoucherDetailDocument,
+  GetOnboardingStatusDocument,
 } from "../__generated__/graphql";
 import { useAuth } from "../context/useAuth";
 import { setAuthToken } from "../apolloClient";
+import { fortnoxAuthUrl } from "../backendOrigin";
 import "../DashboardPage.css";
 import "../BookkeepingPage.css";
 
@@ -171,6 +174,7 @@ export default function BookkeepingPage() {
     loading: yearsLoading,
     error: yearsError,
   } = useQuery(GetFinancialYearsDocument);
+  const { data: onboardingData } = useQuery(GetOnboardingStatusDocument);
 
   /* ── Derived data ── */
   const years = yearsData?.getFinancialYears ?? [];
@@ -223,6 +227,15 @@ export default function BookkeepingPage() {
     navigate({ to: "/" });
   };
 
+  const handleOpenFortnoxConnect = () => {
+    const token = localStorage.getItem("jwt_token");
+    if (!token) return;
+    window.open(fortnoxAuthUrl(token), "_blank", "noopener,noreferrer");
+  };
+
+  const showFortnoxConnect =
+    onboardingData?.getOnboardingStatus?.hasFortnox === false;
+
   const toggleVoucher = (id: string) => {
     setExpandedVoucherId((prev) => (prev === id ? null : id));
   };
@@ -252,10 +265,22 @@ export default function BookkeepingPage() {
             </nav>
           </div>
 
-          <button className="dashboard-logout" onClick={handleLogout}>
-            <SignOut20Regular />
-            Logga ut
-          </button>
+          <div className="dashboard-sidebar__bottom">
+            {showFortnoxConnect && (
+              <button
+                type="button"
+                className="dashboard-fortnox"
+                onClick={handleOpenFortnoxConnect}
+              >
+                <PlugConnected20Regular />
+                Koppla Fortnox
+              </button>
+            )}
+            <button className="dashboard-logout" onClick={handleLogout}>
+              <SignOut20Regular />
+              Logga ut
+            </button>
+          </div>
         </aside>
 
         {/* ── Main content ── */}

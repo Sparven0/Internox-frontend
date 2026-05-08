@@ -14,6 +14,7 @@ import { useMutation } from "@apollo/client/react";
 import { useNavigate } from "@tanstack/react-router";
 import { internoxTheme } from "../theme";
 import { ADD_IMAP_CREDENTIALS, CREATE_USER } from "../GraphQL/mutations";
+import { fortnoxAuthUrl } from "../backendOrigin";
 import "../OnboardingPage.css";
 
 // ── Types ──────────────────────────────────────────────
@@ -121,7 +122,7 @@ export default function OnboardingPage() {
       setResult({ type: "error", message: "Ingen token hittades. Kontrollera att du är inloggad." });
       return;
     }
-    window.open(`http://localhost:1222/auth?token=${encodeURIComponent(token)}`, "_blank");
+    window.open(fortnoxAuthUrl(token), "_blank");
   };
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
