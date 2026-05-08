@@ -186,3 +186,35 @@ export const GET_VOUCHER_DETAIL = gql`
     }
   }
 `;
+
+export const GET_EMPLOYEES_BY_CUSTOMER = gql`
+  query GetEmployeesByCustomer($customerId: ID!) {
+    getEmployeesByCustomer(customerId: $customerId) {
+      id
+      email
+      role
+    }
+  }
+`;
+
+export const GET_ALL_CUSTOMERS = gql`
+  query GetAllCustomers {
+    getAllCustomers {
+      id
+      name
+      email
+      fortnoxCustomerNumber
+    }
+  }
+`;
+
+export const GET_CUSTOMERS_BY_EMPLOYEE = gql`
+  query GetCustomersByEmployee($userId: ID!) {
+    getCustomersByEmployee(userId: $userId) {
+      id
+      name
+      email
+      fortnoxCustomerNumber
+    }
+  }
+`;

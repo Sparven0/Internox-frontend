@@ -116,3 +116,19 @@ export const SAVE_FORTNOX_TOKENS = gql`
     )
   }
 `;
+
+export const ASSIGN_CUSTOMER_TO_EMPLOYEE = gql`
+  mutation AssignCustomerToEmployee($userId: ID!, $customerId: ID!) {
+    assignCustomerToEmployee(userId: $userId, customerId: $customerId) {
+      userId
+      customerId
+      assignedAt
+    }
+  }
+`;
+
+export const UNASSIGN_CUSTOMER_FROM_EMPLOYEE = gql`
+  mutation UnassignCustomerFromEmployee($userId: ID!, $customerId: ID!) {
+    unassignCustomerFromEmployee(userId: $userId, customerId: $customerId)
+  }
+`;

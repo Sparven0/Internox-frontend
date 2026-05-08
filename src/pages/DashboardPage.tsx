@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery } from "@apollo/client/react";
 import { useNavigate, Link } from "@tanstack/react-router";
 import {
@@ -19,9 +20,11 @@ import { internoxTheme } from "../theme";
 import {
   GetInitPageDataDocument,
   GetInitPageIntegrationDataDocument,
+  GetAllCustomersDocument,
 } from "../__generated__/graphql";
 import { useAuth } from "../context/useAuth";
 import { setAuthToken } from "../apolloClient";
+import EmployeeCustomerPanel from "../components/EmployeeCustomerPanel";
 import "../DashboardPage.css";
 
 const useStyles = makeStyles({
@@ -34,6 +37,9 @@ export default function DashboardPage() {
   const classes = useStyles();
   const navigate = useNavigate();
   const { setToken } = useAuth();
+  const [expandedEmployeeId, setExpandedEmployeeId] = useState<string | null>(
+    null,
+  );
 
   const { data: pageData, loading: pageLoading } = useQuery(
     GetInitPageDataDocument,
@@ -43,17 +49,15 @@ export default function DashboardPage() {
     loading: integrationLoading,
     refetch,
   } = useQuery(GetInitPageIntegrationDataDocument);
+  const { data: customersData, loading: customersLoading } = useQuery(
+    GetAllCustomersDocument,
+  );
 
   const company = pageData?.getInitPageData?.company;
   const users = pageData?.getInitPageData?.users ?? [];
-  const customers = integrationData?.getInitPageIntegrationData?.customers;
   const emails = integrationData?.getInitPageIntegrationData?.emails;
 
-  const customerList: Array<{ name?: string; email?: string }> = Array.isArray(
-    customers,
-  )
-    ? customers
-    : [];
+  const customerList = customersData?.getAllCustomers ?? [];
   const emailList: Array<{
     userId: string | number;
     emails?: string[];
@@ -166,25 +170,55 @@ export default function DashboardPage() {
               <div className="dashboard-empty">Inga anställda hittades.</div>
             ) : (
               <div className="dashboard-table">
-                <div className="dashboard-table__head">
+                <div className="ec-table__head">
                   <span>E-post</span>
                   <span>Roll</span>
+                  <span>Kunder</span>
                 </div>
                 {users.map((u) => (
-                  <div key={u.id} className="dashboard-table__row">
-                    <div className="dashboard-table__cell dashboard-table__cell--user">
-                      <div className="dashboard-avatar">
-                        <Person20Regular />
+                  <div
+                    key={u.id}
+                    className={`ec-employee-block${
+                      expandedEmployeeId === u.id
+                        ? " ec-employee-block--expanded"
+                        : ""
+                    }`}
+                  >
+                    <div className="ec-employee-row">
+                      <div className="dashboard-table__cell dashboard-table__cell--user">
+                        <div className="dashboard-avatar">
+                          <Person20Regular />
+                        </div>
+                        <span>{u.email}</span>
                       </div>
-                      <span>{u.email}</span>
+                      <div className="dashboard-table__cell">
+                        <span
+                          className={`dashboard-badge dashboard-badge--${u.role}`}
+                        >
+                          {u.role}
+                        </span>
+                      </div>
+                      <div className="dashboard-table__cell">
+                        <button
+                          className={`ec-customers-btn${
+                            expandedEmployeeId === u.id
+                              ? " ec-customers-btn--active"
+                              : ""
+                          }`}
+                          onClick={() =>
+                            setExpandedEmployeeId(
+                              expandedEmployeeId === u.id ? null : u.id,
+                            )
+                          }
+                        >
+                          <Building20Regular />
+                          Kunder
+                        </button>
+                      </div>
                     </div>
-                    <div className="dashboard-table__cell">
-                      <span
-                        className={`dashboard-badge dashboard-badge--${u.role}`}
-                      >
-                        {u.role}
-                      </span>
-                    </div>
+                    {expandedEmployeeId === u.id && (
+                      <EmployeeCustomerPanel userId={u.id} />
+                    )}
                   </div>
                 ))}
               </div>
@@ -200,31 +234,34 @@ export default function DashboardPage() {
               </h2>
             </div>
 
-            {integrationLoading ? (
+            {customersLoading ? (
               <div className="dashboard-loading">
                 <Spinner size="small" className={classes.spinner} />
               </div>
-            ) : typeof customers === "string" ? (
-              <div className="dashboard-empty dashboard-empty--warning">
-                {customers}
-              </div>
             ) : customerList.length === 0 ? (
               <div className="dashboard-empty">
-                Inga kunder hittades i Fortnox.
+                Inga kunder hittades.
               </div>
             ) : (
               <div className="dashboard-table">
-                <div className="dashboard-table__head">
+                <div className="dashboard-table__head dashboard-table__head--3col">
                   <span>Namn</span>
+                  <span>ID</span>
                   <span>E-post</span>
                 </div>
                 {customerList.map((c, i) => (
-                  <div key={i} className="dashboard-table__row">
+                  <div
+                    key={i}
+                    className="dashboard-table__row dashboard-table__row--3col"
+                  >
                     <div className="dashboard-table__cell dashboard-table__cell--user">
                       <div className="dashboard-avatar dashboard-avatar--green">
                         <Building20Regular />
                       </div>
                       <span>{c.name ?? "—"}</span>
+                    </div>
+                    <div className="dashboard-table__cell dashboard-table__cell--muted">
+                      {c.id ?? "—"}
                     </div>
                     <div className="dashboard-table__cell dashboard-table__cell--muted">
                       {c.email ?? "—"}
