@@ -32,6 +32,13 @@ const useStyles = makeStyles({
   spinner: { color: tokens.colorBrandForeground1 },
 });
 
+function fmtDate(raw: string | null | undefined): string {
+  if (!raw) return "—";
+  const d = new Date(raw);
+  if (isNaN(d.getTime())) return raw;
+  return d.toLocaleDateString("sv-SE");
+}
+
 function fmtSEK(v: number | null | undefined): string {
   if (v == null) return "—";
   return new Intl.NumberFormat("sv-SE", {
@@ -284,7 +291,7 @@ export default function BookkeepingPage() {
               >
                 {years.map((y) => (
                   <option key={y.id} value={y.id}>
-                    {y.fromDate} – {y.toDate}
+                    {fmtDate(y.fromDate)} – {fmtDate(y.toDate)}
                   </option>
                 ))}
               </select>
@@ -457,7 +464,7 @@ export default function BookkeepingPage() {
                           className="bk-voucher-row-main"
                           onClick={() => toggleVoucher(v.id)}
                         >
-                          <span>{v.transactionDate}</span>
+                          <span>{fmtDate(v.transactionDate)}</span>
                           <span>
                             <span className="bk-series-badge">
                               {v.voucherSeries} {v.voucherNumber}
