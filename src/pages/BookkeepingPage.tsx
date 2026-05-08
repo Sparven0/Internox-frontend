@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@apollo/client/react";
 import { useNavigate, Link } from "@tanstack/react-router";
 import { FluentProvider, Spinner, makeStyles, tokens } from "@fluentui/react-components";
@@ -235,6 +235,11 @@ export default function BookkeepingPage() {
 
   const showFortnoxConnect =
     onboardingData?.getOnboardingStatus?.hasFortnox === false;
+  const hasFortnox = onboardingData?.getOnboardingStatus?.hasFortnox;
+
+  useEffect(() => {
+    console.log("hasFortnox", hasFortnox);
+  }, [hasFortnox]);
 
   const toggleVoucher = (id: string) => {
     setExpandedVoucherId((prev) => (prev === id ? null : id));

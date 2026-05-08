@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useQuery } from "@apollo/client/react";
 import { useNavigate, Link } from "@tanstack/react-router";
 import {
@@ -79,6 +80,11 @@ export default function DashboardPage() {
 
   const showFortnoxConnect =
     onboardingData?.getOnboardingStatus?.hasFortnox === false;
+  const hasFortnox = onboardingData?.getOnboardingStatus?.hasFortnox;
+
+  useEffect(() => {
+    console.log("hasFortnox", hasFortnox);
+  }, [hasFortnox]);
 
   return (
     <FluentProvider theme={internoxTheme}>
