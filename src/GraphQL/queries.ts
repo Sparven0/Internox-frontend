@@ -218,3 +218,16 @@ export const GET_CUSTOMERS_BY_EMPLOYEE = gql`
     }
   }
 `;
+
+export const ME = gql`
+  query Me {
+    me {
+      id
+      role
+      email
+      userName
+      companyId
+      companyName
+    }
+  }
+`;

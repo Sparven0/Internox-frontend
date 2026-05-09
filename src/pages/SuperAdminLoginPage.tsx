@@ -49,11 +49,7 @@ export default function SuperAdminPage() {
         variables: { userName, password },
       });
       if (data) {
-        setSuperAdminToken(data.loginSuperAdmin.token);
-        localStorage.setItem(
-          "superadmin_jwt_token",
-          data.loginSuperAdmin.token,
-        );
+        setSuperAdminToken("authenticated");
         navigate({ to: "/superadmin/dashboard" });
       }
     } catch (err) {

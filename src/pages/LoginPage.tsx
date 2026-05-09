@@ -55,9 +55,8 @@ export default function LoginPage() {
         variables: { email, password, companyDomain },
       });
       if (data) {
-        setAuthToken(data.login.token);
-        setToken(data.login.token);
-        localStorage.setItem("jwt_token", data.login.token);
+        setAuthToken("cookie");
+        setToken("authenticated");
 
         // Kolla onboarding-status med den nya tokenen
         const { data: statusData } = await apolloClient.query<{

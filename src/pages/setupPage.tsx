@@ -1,4 +1,4 @@
-import { useState, useEffect, type ChangeEvent } from "react";
+import { useState, type ChangeEvent } from "react";
 import {
   FluentProvider,
   Button,
@@ -15,6 +15,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { internoxTheme } from "../theme";
 import { ADD_IMAP_CREDENTIALS, CREATE_USER } from "../GraphQL/mutations";
 import { fortnoxAuthUrl } from "../backendOrigin";
+import { getAuthToken } from "../apolloClient";
 import "../OnboardingPage.css";
 
 // ── Types ──────────────────────────────────────────────
@@ -99,7 +100,7 @@ const FIELDS: {
 // ── Component ──────────────────────────────────────────
 export default function OnboardingPage() {
   const navigate = useNavigate();
-  const [fortnoxDone, setFortnoxDone]   = useState<boolean>(false);
+  const fortnoxDone = !!getAuthToken();
   const [imapDone, setImapDone]         = useState<boolean>(false);
   const [addedCount, setAddedCount]     = useState<number>(0);
   const [form, setForm]                 = useState<FormState>(EMPTY_FORM);
@@ -112,17 +113,8 @@ export default function OnboardingPage() {
   const [createUser]          = useMutation(CREATE_USER);
   const [addImapCredentials]  = useMutation(ADD_IMAP_CREDENTIALS);
 
-  useEffect(() => {
-    if (localStorage.getItem("jwt_token")) setFortnoxDone(true);
-  }, []);
-
   const handleFortnoxConnect = () => {
-    const token = localStorage.getItem("jwt_token");
-    if (!token) {
-      setResult({ type: "error", message: "Ingen token hittades. Kontrollera att du är inloggad." });
-      return;
-    }
-    window.open(fortnoxAuthUrl(token), "_blank");
+    window.open(fortnoxAuthUrl(), "_blank");
   };
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -146,8 +138,8 @@ export default function OnboardingPage() {
             password: form.password,
           },
         });
-      } catch (userErr: any) {
-        if (!userErr.message?.includes("Unique constraint")) {
+      } catch (userErr: unknown) {
+        if (!(userErr instanceof Error) || !userErr.message?.includes("Unique constraint")) {
           throw userErr;
         }
       }
@@ -168,8 +160,8 @@ export default function OnboardingPage() {
       setImapDone(true);
       setResult({ type: "success", message: `${form.userEmail} har lagts till!` });
       setForm(EMPTY_FORM);
-    } catch (err: any) {
-      setResult({ type: "error", message: err.message ?? "Något gick fel." });
+    } catch (err: unknown) {
+      setResult({ type: "error", message: err instanceof Error ? err.message : "Något gick fel." });
     } finally {
       setLoading(false);
     }

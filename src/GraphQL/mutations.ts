@@ -3,7 +3,6 @@ import { gql } from "@apollo/client";
 export const LOGIN = gql`
   mutation Login($email: String!, $password: String!, $companyDomain: String!) {
     login(email: $email, password: $password, companyDomain: $companyDomain) {
-      token
       id
       email
       role
@@ -80,10 +79,15 @@ export const ADD_IMAP_CREDENTIALS = gql`
 export const LOGIN_SUPER_ADMIN = gql`
   mutation LoginSuperAdmin($userName: String!, $password: String!) {
     loginSuperAdmin(userName: $userName, password: $password) {
-      token
       userName
       role
     }
+  }
+`;
+
+export const LOGOUT = gql`
+  mutation Logout {
+    logout
   }
 `;
 

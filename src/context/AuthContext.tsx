@@ -3,16 +3,9 @@ import type { ReactNode } from "react";
 import { AuthContext } from "./authContext";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [token, setTokenState] = useState<string | null>(
-    localStorage.getItem("jwt_token") // ← läs från localStorage vid start
-  );
+  const [token, setTokenState] = useState<string | null>(null);
 
   const setToken = (newToken: string | null) => {
-    if (newToken) {
-      localStorage.setItem("jwt_token", newToken); // ← spara vid login
-    } else {
-      localStorage.removeItem("jwt_token"); // ← rensa vid logout
-    }
     setTokenState(newToken);
   };
 

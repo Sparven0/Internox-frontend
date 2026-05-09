@@ -13,7 +13,17 @@ import {
   PageError,
 } from "./components/RootFallbacks";
 
-import { getAuthToken, getSuperAdminToken } from "./apolloClient";
+import {
+  getAuthToken,
+  verifySession,
+  verifySuperAdminSession,
+} from "./apolloClient";
+
+async function requireAuth() {
+  if (getAuthToken()) return;
+  const user = await verifySession();
+  if (!user) throw redirect({ to: "/" });
+}
 
 const rootRoute = createRootRoute({
   component: Outlet,
@@ -32,11 +42,7 @@ const loginRoute = createRoute({
 const dashboardRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/dashboard",
-  beforeLoad: () => {
-    if (!getAuthToken()) {
-      throw redirect({ to: "/" });
-    }
-  },
+  beforeLoad: requireAuth,
   component: lazy(() => import("./pages/DashboardPage")),
   pendingComponent: PagePending,
   errorComponent: PageError,
@@ -45,11 +51,7 @@ const dashboardRoute = createRoute({
 const adminRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/admin",
-  beforeLoad: () => {
-    if (!getAuthToken()) {
-      throw redirect({ to: "/" });
-    }
-  },
+  beforeLoad: requireAuth,
   component: lazy(() => import("./pages/AdminPage")),
   pendingComponent: PagePending,
   errorComponent: PageError,
@@ -66,10 +68,9 @@ const superAdminLoginRoute = createRoute({
 const superAdminDashboardRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/superadmin/dashboard",
-  beforeLoad: () => {
-    if (!getSuperAdminToken()) {
-      throw redirect({ to: "/superadmin" });
-    }
+  beforeLoad: async () => {
+    const ok = await verifySuperAdminSession();
+    if (!ok) throw redirect({ to: "/superadmin" });
   },
   component: lazy(() => import("./pages/SuperAdminDashboardPage")),
   pendingComponent: PagePending,
@@ -79,11 +80,7 @@ const superAdminDashboardRoute = createRoute({
 const setupRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/setup",
-  beforeLoad: () => {
-    if (!getAuthToken()) {
-      throw redirect({ to: "/" });
-    }
-  },
+  beforeLoad: requireAuth,
   component: lazy(() => import("./pages/setupPage")),
   pendingComponent: PagePending,
   errorComponent: PageError,
@@ -92,11 +89,7 @@ const setupRoute = createRoute({
 const bookkeepingRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/bookkeeping",
-  beforeLoad: () => {
-    if (!getAuthToken()) {
-      throw redirect({ to: "/" });
-    }
-  },
+  beforeLoad: requireAuth,
   component: lazy(() => import("./pages/BookkeepingPage")),
   pendingComponent: PagePending,
   errorComponent: PageError,

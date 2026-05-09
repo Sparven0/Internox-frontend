@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useQuery } from "@apollo/client/react";
+import { useQuery, useMutation } from "@apollo/client/react";
 import { useNavigate, Link } from "@tanstack/react-router";
 import { FluentProvider, Spinner, makeStyles, tokens } from "@fluentui/react-components";
 import {
@@ -22,6 +22,7 @@ import {
   GetVouchersDocument,
   GetVoucherDetailDocument,
   GetOnboardingStatusDocument,
+  LogoutDocument,
 } from "../__generated__/graphql";
 import { useAuth } from "../context/useAuth";
 import { setAuthToken } from "../apolloClient";
@@ -144,6 +145,7 @@ export default function BookkeepingPage() {
   const classes = useStyles();
   const navigate = useNavigate();
   const { setToken } = useAuth();
+  const [logout] = useMutation(LogoutDocument);
 
   const [selectedYearId, setSelectedYearId] = useState<string>("");
   const [activeTab, setActiveTab] = useState<"accounts" | "vouchers">(
@@ -220,17 +222,15 @@ export default function BookkeepingPage() {
   const hasPrevPage = page > 1;
   const hasNextPage = vouchers.length === VOUCHER_PAGE_SIZE;
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try { await logout(); } catch { /* ignore */ }
     setToken(null);
     setAuthToken(null);
-    localStorage.removeItem("jwt_token");
     navigate({ to: "/" });
   };
 
   const handleOpenFortnoxConnect = () => {
-    const token = localStorage.getItem("jwt_token");
-    if (!token) return;
-    window.open(fortnoxAuthUrl(token), "_blank", "noopener,noreferrer");
+    window.open(fortnoxAuthUrl(), "_blank", "noopener,noreferrer");
   };
 
   const showFortnoxConnect =

@@ -6,7 +6,6 @@ import {
   GetAllCompaniesDocument,
   RemoveCompanyDocument,
 } from "../__generated__/graphql";
-import { getSuperAdminToken } from "../apolloClient";
 import {
   Button,
   Dialog,
@@ -639,14 +638,9 @@ function CreateCompanyDialog({
 
 export default function SuperAdminDashboardPage() {
   const styles = useStyles();
-  const superAdminToken = getSuperAdminToken();
-  const authContext = {
-    headers: { Authorization: `Bearer ${superAdminToken}` },
-  };
+  const authContext = { headers: { Authorization: "" } };
 
-  const { data, loading, error, refetch } = useQuery(GetAllCompaniesDocument, {
-    context: authContext,
-  });
+  const { data, loading, error, refetch } = useQuery(GetAllCompaniesDocument);
 
   const companies = data?.getAllCompanies ?? [];
 
