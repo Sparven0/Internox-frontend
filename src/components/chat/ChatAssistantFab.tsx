@@ -58,29 +58,45 @@ import { useCallback, useEffect, useRef, useState } from 'react';
     return (
       <>
         {/* FAB */}
-        <button
-          type="button"
-          aria-label="Open assistant chat"
-          onClick={() => setOpen(true)}
-          style={{
-            position: 'fixed',
-            right: 24,
-            bottom: 24,
-            zIndex: 1300,
-            width: 56,
-            height: 56,
-            borderRadius: '50%',
-            border: 'none',
-            cursor: 'pointer',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
-            background: '#1976d2',
-            color: '#fff',
-            fontSize: 24,
-            lineHeight: 1,
-          }}
-        >
-          💬
-        </button>
+        {!open ? (
+          <button
+            type="button"
+            aria-label="Open assistant chat"
+            onClick={() => setOpen(true)}
+            style={{
+              position: 'fixed',
+              right: 24,
+              bottom: 24,
+              zIndex: 1300,
+              width: 56,
+              height: 56,
+              borderRadius: '50%',
+              border: 'none',
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
+              background: '#ffffff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: 0,
+              lineHeight: 1,
+            }}
+          >
+            <svg
+              width={28}
+              height={28}
+              viewBox="0 0 120 120"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden
+            >
+              <path
+                d="M20 25C20 18.3726 25.3726 13 32 13H88C94.6274 13 100 18.3726 100 25V67C100 73.6274 94.6274 79 88 79H53L32 98V79H32C25.3726 79 20 73.6274 20 67V25Z"
+                fill="#00c06b"
+              />
+            </svg>
+          </button>
+        ) : null}
         {/* Backdrop */}
         {open ? (
           <button
