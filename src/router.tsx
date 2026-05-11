@@ -95,6 +95,15 @@ const bookkeepingRoute = createRoute({
   errorComponent: PageError,
 });
 
+const invoicesRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/invoices",
+  beforeLoad: requireAuth,
+  component: lazy(() => import("./pages/InvoicePage")),
+  pendingComponent: PagePending,
+  errorComponent: PageError,
+});
+
 const routeTree = rootRoute.addChildren([
   loginRoute,
   dashboardRoute,
@@ -103,6 +112,7 @@ const routeTree = rootRoute.addChildren([
   superAdminDashboardRoute,
   setupRoute,
   bookkeepingRoute,
+  invoicesRoute,
 ]);
 
 export const router = createRouter({ routeTree });

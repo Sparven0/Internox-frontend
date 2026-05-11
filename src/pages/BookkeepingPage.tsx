@@ -14,6 +14,7 @@ import {
   Search20Regular,
   TableSimple20Regular,
   BookNumber20Regular,
+  Receipt20Regular,
 } from "@fluentui/react-icons";
 import { internoxTheme } from "../theme";
 import {
@@ -266,6 +267,9 @@ export default function BookkeepingPage() {
                 className="dashboard-nav__item dashboard-nav__item--active"
               >
                 <DocumentTable20Regular /> Bokföring
+              </Link>
+              <Link to="/invoices" className="dashboard-nav__item">
+                <Receipt20Regular /> Fakturor
               </Link>
             </nav>
           </div>

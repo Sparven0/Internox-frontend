@@ -16,6 +16,7 @@ import {
   ArrowClockwise20Regular,
   DocumentTable20Regular,
   PlugConnected20Regular,
+  Receipt20Regular,
 } from "@fluentui/react-icons";
 import { internoxTheme } from "../theme";
 import {
@@ -122,6 +123,9 @@ export default function DashboardPage() {
               </a>
               <Link to="/bookkeeping" className="dashboard-nav__item">
                 <DocumentTable20Regular /> Bokföring
+              </Link>
+              <Link to="/invoices" className="dashboard-nav__item">
+                <Receipt20Regular /> Fakturor
               </Link>
             </nav>
           </div>

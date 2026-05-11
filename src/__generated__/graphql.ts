@@ -67,6 +67,34 @@ export type FortnoxFinancialYear = {
   toDate: Scalars['String']['output'];
 };
 
+export type FortnoxInvoice = {
+  __typename: 'FortnoxInvoice';
+  currency: Scalars['String']['output'];
+  customerNumber: Scalars['String']['output'];
+  dueDate?: Maybe<Scalars['String']['output']>;
+  invoiceDate: Scalars['String']['output'];
+  invoiceNumber: Scalars['String']['output'];
+  ourReference?: Maybe<Scalars['String']['output']>;
+  rows: Array<FortnoxInvoiceRow>;
+  status: Scalars['String']['output'];
+  syncedAt: Scalars['String']['output'];
+  totalExclVat?: Maybe<Scalars['Float']['output']>;
+  totalInclVat?: Maybe<Scalars['Float']['output']>;
+  vat?: Maybe<Scalars['Float']['output']>;
+  yourReference?: Maybe<Scalars['String']['output']>;
+};
+
+export type FortnoxInvoiceRow = {
+  __typename: 'FortnoxInvoiceRow';
+  articleNumber?: Maybe<Scalars['String']['output']>;
+  description?: Maybe<Scalars['String']['output']>;
+  price?: Maybe<Scalars['Float']['output']>;
+  quantity?: Maybe<Scalars['Float']['output']>;
+  rowNumber: Scalars['Int']['output'];
+  total?: Maybe<Scalars['Float']['output']>;
+  vatPercent?: Maybe<Scalars['Float']['output']>;
+};
+
 export type FortnoxVoucher = {
   __typename: 'FortnoxVoucher';
   description?: Maybe<Scalars['String']['output']>;
@@ -270,10 +298,13 @@ export type Query = {
   getCustomersByEmployee: Array<Customer>;
   getEmployeesByCustomer: Array<User>;
   getFinancialYears: Array<FortnoxFinancialYear>;
+  getFortnoxAuthUrl: Scalars['String']['output'];
   getFortnoxData?: Maybe<Scalars['JSON']['output']>;
   getImapCredentials?: Maybe<Array<Maybe<ImapCredential>>>;
   getInitPageData: InitPageData;
   getInitPageIntegrationData: InitPageIntegrationData;
+  getInvoiceDetail?: Maybe<FortnoxInvoice>;
+  getInvoices: Array<FortnoxInvoice>;
   getOnboardingStatus: OnboardingStatus;
   getSentEmails?: Maybe<Array<Maybe<SentEmail>>>;
   getUsers?: Maybe<Array<Maybe<User>>>;
@@ -317,6 +348,19 @@ export type QueryGetFortnoxDataArgs = {
 
 export type QueryGetImapCredentialsArgs = {
   company: Scalars['String']['input'];
+};
+
+
+export type QueryGetInvoiceDetailArgs = {
+  invoiceNumber: Scalars['String']['input'];
+};
+
+
+export type QueryGetInvoicesArgs = {
+  customerNumber?: InputMaybe<Scalars['String']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  page?: InputMaybe<Scalars['Int']['input']>;
+  status?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -607,6 +651,28 @@ export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type MeQuery = { me?: { __typename: 'Me', id: string, role: string, email?: string | null, userName?: string | null, companyId?: string | null, companyName?: string | null } | null };
 
+export type GetInvoicesQueryVariables = Exact<{
+  page?: InputMaybe<Scalars['Int']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  status?: InputMaybe<Scalars['String']['input']>;
+  customerNumber?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type GetInvoicesQuery = { getInvoices: Array<{ __typename: 'FortnoxInvoice', invoiceNumber: string, customerNumber: string, invoiceDate: string, dueDate?: string | null, totalExclVat?: number | null, totalInclVat?: number | null, vat?: number | null, currency: string, status: string }> };
+
+export type GetInvoiceDetailQueryVariables = Exact<{
+  invoiceNumber: Scalars['String']['input'];
+}>;
+
+
+export type GetInvoiceDetailQuery = { getInvoiceDetail?: { __typename: 'FortnoxInvoice', invoiceNumber: string, customerNumber: string, invoiceDate: string, dueDate?: string | null, totalExclVat?: number | null, totalInclVat?: number | null, vat?: number | null, currency: string, status: string, ourReference?: string | null, yourReference?: string | null, rows: Array<{ __typename: 'FortnoxInvoiceRow', rowNumber: number, articleNumber?: string | null, description?: string | null, quantity?: number | null, price?: number | null, vatPercent?: number | null, total?: number | null }> } | null };
+
+export type GetFortnoxAuthUrlQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetFortnoxAuthUrlQuery = { getFortnoxAuthUrl: string };
+
 
 export const LoginDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"Login"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"email"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"password"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"companyDomain"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"login"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"email"},"value":{"kind":"Variable","name":{"kind":"Name","value":"email"}}},{"kind":"Argument","name":{"kind":"Name","value":"password"},"value":{"kind":"Variable","name":{"kind":"Name","value":"password"}}},{"kind":"Argument","name":{"kind":"Name","value":"companyDomain"},"value":{"kind":"Variable","name":{"kind":"Name","value":"companyDomain"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"email"}},{"kind":"Field","name":{"kind":"Name","value":"role"}},{"kind":"Field","name":{"kind":"Name","value":"companyId"}}]}}]}}]} as unknown as DocumentNode<LoginMutation, LoginMutationVariables>;
 export const CreateCompanyDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateCompany"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"name"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"domain"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createCompany"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"name"},"value":{"kind":"Variable","name":{"kind":"Name","value":"name"}}},{"kind":"Argument","name":{"kind":"Name","value":"domain"},"value":{"kind":"Variable","name":{"kind":"Name","value":"domain"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"domain"}}]}}]}}]} as unknown as DocumentNode<CreateCompanyMutation, CreateCompanyMutationVariables>;
@@ -640,3 +706,6 @@ export const GetEmployeesByCustomerDocument = {"kind":"Document","definitions":[
 export const GetAllCustomersDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetAllCustomers"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getAllCustomers"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"email"}},{"kind":"Field","name":{"kind":"Name","value":"fortnoxCustomerNumber"}}]}}]}}]} as unknown as DocumentNode<GetAllCustomersQuery, GetAllCustomersQueryVariables>;
 export const GetCustomersByEmployeeDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetCustomersByEmployee"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"userId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getCustomersByEmployee"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"userId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"userId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"email"}},{"kind":"Field","name":{"kind":"Name","value":"fortnoxCustomerNumber"}}]}}]}}]} as unknown as DocumentNode<GetCustomersByEmployeeQuery, GetCustomersByEmployeeQueryVariables>;
 export const MeDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"Me"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"me"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"role"}},{"kind":"Field","name":{"kind":"Name","value":"email"}},{"kind":"Field","name":{"kind":"Name","value":"userName"}},{"kind":"Field","name":{"kind":"Name","value":"companyId"}},{"kind":"Field","name":{"kind":"Name","value":"companyName"}}]}}]}}]} as unknown as DocumentNode<MeQuery, MeQueryVariables>;
+export const GetInvoicesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetInvoices"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"page"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"limit"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"status"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"customerNumber"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getInvoices"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"page"},"value":{"kind":"Variable","name":{"kind":"Name","value":"page"}}},{"kind":"Argument","name":{"kind":"Name","value":"limit"},"value":{"kind":"Variable","name":{"kind":"Name","value":"limit"}}},{"kind":"Argument","name":{"kind":"Name","value":"status"},"value":{"kind":"Variable","name":{"kind":"Name","value":"status"}}},{"kind":"Argument","name":{"kind":"Name","value":"customerNumber"},"value":{"kind":"Variable","name":{"kind":"Name","value":"customerNumber"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"invoiceNumber"}},{"kind":"Field","name":{"kind":"Name","value":"customerNumber"}},{"kind":"Field","name":{"kind":"Name","value":"invoiceDate"}},{"kind":"Field","name":{"kind":"Name","value":"dueDate"}},{"kind":"Field","name":{"kind":"Name","value":"totalExclVat"}},{"kind":"Field","name":{"kind":"Name","value":"totalInclVat"}},{"kind":"Field","name":{"kind":"Name","value":"vat"}},{"kind":"Field","name":{"kind":"Name","value":"currency"}},{"kind":"Field","name":{"kind":"Name","value":"status"}}]}}]}}]} as unknown as DocumentNode<GetInvoicesQuery, GetInvoicesQueryVariables>;
+export const GetInvoiceDetailDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetInvoiceDetail"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"invoiceNumber"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getInvoiceDetail"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"invoiceNumber"},"value":{"kind":"Variable","name":{"kind":"Name","value":"invoiceNumber"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"invoiceNumber"}},{"kind":"Field","name":{"kind":"Name","value":"customerNumber"}},{"kind":"Field","name":{"kind":"Name","value":"invoiceDate"}},{"kind":"Field","name":{"kind":"Name","value":"dueDate"}},{"kind":"Field","name":{"kind":"Name","value":"totalExclVat"}},{"kind":"Field","name":{"kind":"Name","value":"totalInclVat"}},{"kind":"Field","name":{"kind":"Name","value":"vat"}},{"kind":"Field","name":{"kind":"Name","value":"currency"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"ourReference"}},{"kind":"Field","name":{"kind":"Name","value":"yourReference"}},{"kind":"Field","name":{"kind":"Name","value":"rows"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"rowNumber"}},{"kind":"Field","name":{"kind":"Name","value":"articleNumber"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"quantity"}},{"kind":"Field","name":{"kind":"Name","value":"price"}},{"kind":"Field","name":{"kind":"Name","value":"vatPercent"}},{"kind":"Field","name":{"kind":"Name","value":"total"}}]}}]}}]}}]} as unknown as DocumentNode<GetInvoiceDetailQuery, GetInvoiceDetailQueryVariables>;
+export const GetFortnoxAuthUrlDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetFortnoxAuthUrl"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getFortnoxAuthUrl"}}]}}]} as unknown as DocumentNode<GetFortnoxAuthUrlQuery, GetFortnoxAuthUrlQueryVariables>;

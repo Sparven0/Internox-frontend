@@ -231,3 +231,62 @@ export const ME = gql`
     }
   }
 `;
+
+export const GET_INVOICES = gql`
+  query GetInvoices(
+    $page: Int
+    $limit: Int
+    $status: String
+    $customerNumber: String
+  ) {
+    getInvoices(
+      page: $page
+      limit: $limit
+      status: $status
+      customerNumber: $customerNumber
+    ) {
+      invoiceNumber
+      customerNumber
+      invoiceDate
+      dueDate
+      totalExclVat
+      totalInclVat
+      vat
+      currency
+      status
+    }
+  }
+`;
+
+export const GET_INVOICE_DETAIL = gql`
+  query GetInvoiceDetail($invoiceNumber: String!) {
+    getInvoiceDetail(invoiceNumber: $invoiceNumber) {
+      invoiceNumber
+      customerNumber
+      invoiceDate
+      dueDate
+      totalExclVat
+      totalInclVat
+      vat
+      currency
+      status
+      ourReference
+      yourReference
+      rows {
+        rowNumber
+        articleNumber
+        description
+        quantity
+        price
+        vatPercent
+        total
+      }
+    }
+  }
+`;
+
+export const GET_FORTNOX_AUTH_URL = gql`
+  query GetFortnoxAuthUrl {
+    getFortnoxAuthUrl
+  }
+`;
