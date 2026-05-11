@@ -17,6 +17,9 @@ import {
   ChevronLeft20Regular,
   ChevronRight20Regular,
   Search20Regular,
+  Checkmark20Regular,
+  ArrowSync20Regular,
+  LinkAdd20Regular,
 } from "@fluentui/react-icons";
 import { internoxTheme } from "../theme";
 import {
@@ -87,10 +90,21 @@ function SkeletonRows({ count }: { count: number }) {
           <div className="inv-skel" style={{ width: "75%" }} />
           <div className="inv-skel" style={{ width: "40%" }} />
           <div className="inv-skel" style={{ width: "80%" }} />
+          <div className="inv-skel" style={{ width: "90px" }} />
           <div className="inv-skel" style={{ width: "24px" }} />
         </div>
       ))}
     </>
+  );
+}
+
+function BookedCell({ bookedAt }: { bookedAt?: string | null }) {
+  if (!bookedAt) return <span className="inv-booked-empty">—</span>;
+  return (
+    <span className="inv-booked">
+      <Checkmark20Regular className="inv-booked__icon" />
+      {fmtDate(bookedAt)}
+    </span>
   );
 }
 
@@ -126,13 +140,22 @@ function FortnoxReconnectBanner() {
 
 function InvoiceDetailPanel({ invoiceNumber }: { invoiceNumber: string }) {
   const classes = useStyles();
-  const { data, loading, error } = useQuery<
+  const { data, loading, error, refetch } = useQuery<
     GetInvoiceDetailQuery,
     GetInvoiceDetailQueryVariables
   >(GetInvoiceDetailDocument, {
     variables: { invoiceNumber },
     fetchPolicy: "network-only",
   });
+  const [resyncing, setResyncing] = useState(false);
+  const handleResync = async () => {
+    setResyncing(true);
+    try {
+      await refetch();
+    } finally {
+      setResyncing(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -158,6 +181,22 @@ function InvoiceDetailPanel({ invoiceNumber }: { invoiceNumber: string }) {
 
   return (
     <div className="inv-detail-panel">
+      {/* Toolbar */}
+      <div className="inv-detail-toolbar">
+        <button
+          className="inv-detail-resync-btn"
+          onClick={handleResync}
+          disabled={resyncing}
+        >
+          <ArrowSync20Regular
+            className={
+              resyncing ? "inv-detail-resync-btn__icon--spinning" : undefined
+            }
+          />
+          {resyncing ? "Uppdaterar…" : "Uppdatera"}
+        </button>
+      </div>
+
       {/* Header meta grid */}
       <div className="inv-detail-meta">
         <div className="inv-detail-field">
@@ -200,6 +239,22 @@ function InvoiceDetailPanel({ invoiceNumber }: { invoiceNumber: string }) {
           <div className="inv-detail-field">
             <span className="inv-detail-field__label">Er referens</span>
             <span className="inv-detail-field__value">{inv.yourReference}</span>
+          </div>
+        )}
+        {inv.bookedAt && (
+          <div className="inv-detail-field">
+            <span className="inv-detail-field__label">Bokförd</span>
+            <span className="inv-detail-field__value">
+              <BookedCell bookedAt={inv.bookedAt} />
+            </span>
+          </div>
+        )}
+        {inv.syncedAt && (
+          <div className="inv-detail-field">
+            <span className="inv-detail-field__label">Senast synkad</span>
+            <span className="inv-detail-field__value">
+              {fmtDate(inv.syncedAt)}
+            </span>
           </div>
         )}
       </div>
@@ -344,6 +399,9 @@ export default function InvoicePage() {
               >
                 <Receipt20Regular /> Fakturor
               </Link>
+              <Link to="/aliases" className="dashboard-nav__item">
+                <LinkAdd20Regular /> Faktura-alias
+              </Link>
             </nav>
           </div>
 
@@ -401,6 +459,7 @@ export default function InvoicePage() {
               <span style={{ textAlign: "right" }}>Totalt inkl. moms</span>
               <span>Valuta</span>
               <span>Status</span>
+              <span>Bokförd</span>
               <span />
             </div>
 
@@ -434,6 +493,9 @@ export default function InvoicePage() {
                       <span>{inv.currency}</span>
                       <span>
                         <StatusBadge status={inv.status} />
+                      </span>
+                      <span>
+                        <BookedCell bookedAt={inv.bookedAt} />
                       </span>
                       <button
                         className="inv-expand-btn"

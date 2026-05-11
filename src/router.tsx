@@ -117,6 +117,15 @@ const invoicesRoute = createRoute({
   errorComponent: PageError,
 });
 
+const aliasManagerRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/aliases",
+  beforeLoad: requireAuth,
+  component: lazy(() => import("./pages/AliasManagerPage")),
+  pendingComponent: PagePending,
+  errorComponent: PageError,
+});
+
 const routeTree = rootRoute.addChildren([
   loginRoute,
   dashboardRoute,
@@ -126,6 +135,7 @@ const routeTree = rootRoute.addChildren([
   setupRoute,
   bookkeepingRoute,
   invoicesRoute,
+  aliasManagerRoute,
 ]);
 
 export const router = createRouter({ routeTree });

@@ -1,0 +1,349 @@
+/* ════════════════════════════════
+   ALIAS MANAGER PAGE
+════════════════════════════════ */
+
+.am-page-loading {
+  display: flex;
+  justify-content: center;
+  padding-top: 80px;
+}
+
+.am-access-denied {
+  padding: 40px 32px;
+  color: #888;
+  font-size: 15px;
+}
+
+.am-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #555;
+  text-decoration: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid #e0e0db;
+  background: #fff;
+  transition: background 0.15s;
+}
+
+.am-back-btn:hover {
+  background: #f5f5f2;
+  color: #111;
+}
+
+/* ════════════════════════════════
+   ADD FORM
+════════════════════════════════ */
+
+.am-add-form {
+  margin: 0 32px 32px;
+  padding: 24px;
+  background: #fff;
+  border: 1px solid #e8e8e4;
+  border-radius: 10px;
+}
+
+.am-add-form__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #111;
+  margin: 0 0 20px;
+}
+
+.am-add-form__row {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.am-add-form__error {
+  margin-top: 12px;
+  font-size: 13px;
+  color: #d93025;
+}
+
+/* ════════════════════════════════
+   FIELD
+════════════════════════════════ */
+
+.am-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 200px;
+  position: relative;
+}
+
+.am-field__label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #666;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.am-field__hint {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: #aaa;
+}
+
+.am-field__input {
+  height: 38px;
+  padding: 0 12px;
+  border: 1px solid #d8d8d4;
+  border-radius: 7px;
+  font-size: 14px;
+  font-family: inherit;
+  color: #111;
+  background: #fff;
+  outline: none;
+  transition: border-color 0.15s;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.am-field__input:focus {
+  border-color: #00c06b;
+  box-shadow: 0 0 0 3px rgba(0, 192, 107, 0.12);
+}
+
+.am-field__input--mono {
+  font-family: "SF Mono", "Fira Code", "Consolas", monospace;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+}
+
+/* ════════════════════════════════
+   COMBOBOX
+════════════════════════════════ */
+
+.am-combobox {
+  position: relative;
+}
+
+.am-combobox__dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid #d8d8d4;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  max-height: 240px;
+  overflow-y: auto;
+  z-index: 100;
+}
+
+.am-combobox__empty {
+  padding: 12px 14px;
+  font-size: 13px;
+  color: #aaa;
+}
+
+.am-combobox__option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 14px;
+  background: none;
+  border: none;
+  text-align: left;
+  font-size: 14px;
+  font-family: inherit;
+  cursor: pointer;
+  color: #111;
+  transition: background 0.1s;
+}
+
+.am-combobox__option:hover {
+  background: #f5f5f2;
+}
+
+.am-combobox__option--selected {
+  background: #f0fdf7;
+  color: #00a05a;
+}
+
+.am-combobox__option-name {
+  font-weight: 500;
+}
+
+.am-combobox__option-num {
+  font-size: 12px;
+  color: #888;
+  font-family: "SF Mono", "Fira Code", "Consolas", monospace;
+}
+
+/* ════════════════════════════════
+   SUBMIT BUTTON
+════════════════════════════════ */
+
+.am-submit-btn {
+  height: 38px;
+  padding: 0 20px;
+  border-radius: 7px;
+  border: none;
+  background: #00c06b;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+  flex-shrink: 0;
+  align-self: flex-end;
+}
+
+.am-submit-btn:hover:not(:disabled) {
+  background: #00a85c;
+}
+
+.am-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* ════════════════════════════════
+   SECTION
+════════════════════════════════ */
+
+.am-section {
+  margin: 0 32px 32px;
+}
+
+.am-section__title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #888;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  margin: 0 0 12px;
+}
+
+/* ════════════════════════════════
+   TABLE
+════════════════════════════════ */
+
+.am-table-wrap {
+  background: #fff;
+  border: 1px solid #e8e8e4;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.am-table-head,
+.am-table-row {
+  display: grid;
+  grid-template-columns: 280px 1fr 160px 120px 44px;
+  align-items: center;
+  padding: 0 20px;
+  gap: 8px;
+}
+
+.am-table-head {
+  height: 38px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #aaaaaa;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  background: #f7f7f5;
+  border-bottom: 1px solid #e0e0db;
+}
+
+.am-table-row {
+  min-height: 48px;
+  border-bottom: 1px solid #f0f0ec;
+  font-size: 14px;
+  color: #222;
+}
+
+.am-table-row:last-child {
+  border-bottom: none;
+}
+
+.am-alias-code {
+  font-family: "SF Mono", "Fira Code", "Consolas", monospace;
+  font-size: 13px;
+  background: #f4f4f1;
+  padding: 3px 7px;
+  border-radius: 4px;
+  color: #1a1a1a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+  max-width: 100%;
+}
+
+.am-customer-num {
+  font-size: 13px;
+  color: #666;
+  font-family: "SF Mono", "Fira Code", "Consolas", monospace;
+}
+
+.am-date {
+  font-size: 13px;
+  color: #888;
+}
+
+.am-actions {
+  display: flex;
+  justify-content: center;
+}
+
+.am-delete-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  cursor: pointer;
+  color: #aaa;
+  transition: background 0.15s, color 0.15s;
+}
+
+.am-delete-btn:hover:not(:disabled) {
+  background: #fef2f2;
+  color: #d93025;
+}
+
+.am-delete-btn:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+/* ════════════════════════════════
+   EMPTY STATE
+════════════════════════════════ */
+
+.am-empty {
+  background: #fff;
+  border: 1px dashed #d8d8d4;
+  border-radius: 10px;
+  padding: 40px 32px;
+  text-align: center;
+}
+
+.am-empty__text {
+  font-size: 14px;
+  color: #888;
+  max-width: 480px;
+  margin: 0 auto;
+  line-height: 1.6;
+}

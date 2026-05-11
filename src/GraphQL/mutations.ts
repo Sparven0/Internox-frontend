@@ -136,3 +136,25 @@ export const UNASSIGN_CUSTOMER_FROM_EMPLOYEE = gql`
     unassignCustomerFromEmployee(userId: $userId, customerId: $customerId)
   }
 `;
+
+export const CREATE_INVOICE_RECIPIENT_ALIAS = gql`
+  mutation CreateInvoiceRecipientAlias($alias: String!, $customerId: ID!) {
+    createInvoiceRecipientAlias(alias: $alias, customerId: $customerId) {
+      id
+      alias
+      customerId
+      customer {
+        id
+        name
+        email
+      }
+      createdAt
+    }
+  }
+`;
+
+export const DELETE_INVOICE_RECIPIENT_ALIAS = gql`
+  mutation DeleteInvoiceRecipientAlias($id: ID!) {
+    deleteInvoiceRecipientAlias(id: $id)
+  }
+`;
