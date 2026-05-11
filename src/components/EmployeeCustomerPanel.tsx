@@ -6,8 +6,26 @@ import {
   GetCustomersByEmployeeDocument,
   AssignCustomerToEmployeeDocument,
   UnassignCustomerFromEmployeeDocument,
+  GetInvoicesDocument,
+  type GetInvoicesQuery,
+  type GetInvoicesQueryVariables,
 } from "../__generated__/graphql";
 import "../DashboardPage.css";
+import "../InvoicePage.css";
+
+function InvoiceCount({ customerNumber }: { customerNumber: string | null | undefined }) {
+  const { data, loading } = useQuery<GetInvoicesQuery, GetInvoicesQueryVariables>(
+    GetInvoicesDocument,
+    {
+      variables: { customerNumber: customerNumber ?? "", limit: 500 },
+      skip: !customerNumber,
+    },
+  );
+  if (!customerNumber) return <span className="ec-assigned__muted">—</span>;
+  if (loading) return <span className="ec-invoice-count ec-invoice-count--loading">…</span>;
+  const count = data?.getInvoices?.length ?? 0;
+  return <span className="ec-invoice-count">{count}</span>;
+}
 
 interface Props {
   userId: string;
@@ -65,6 +83,7 @@ export default function EmployeeCustomerPanel({ userId }: Props) {
             <span>Namn</span>
             <span>E-post</span>
             <span>Fortnox-nr</span>
+            <span>Fakturor</span>
             <span />
           </div>
           {customers.map((c) => (
@@ -75,6 +94,7 @@ export default function EmployeeCustomerPanel({ userId }: Props) {
               <span className="ec-assigned__muted">
                 {c.fortnoxCustomerNumber ?? "—"}
               </span>
+              <InvoiceCount customerNumber={c.fortnoxCustomerNumber} />
               <button
                 className="ec-action-btn ec-action-btn--unassign"
                 title="Koppla bort"
