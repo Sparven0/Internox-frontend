@@ -4,6 +4,7 @@ import {
   createRouter,
   Outlet,
   redirect,
+  useRouterState,
 } from "@tanstack/react-router";
 import { lazy } from "react";
 import {
@@ -12,6 +13,7 @@ import {
   PagePending,
   PageError,
 } from "./components/RootFallbacks";
+import { ChatAssistantFab } from "./components/chat/ChatAssistantFab";
 
 import {
   getAuthToken,
@@ -25,8 +27,19 @@ async function requireAuth() {
   if (!user) throw redirect({ to: "/" });
 }
 
+function RootLayout() {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const hideAssistant = pathname === "/" || pathname === "/superadmin";
+  return (
+    <>
+      <Outlet />
+      {hideAssistant ? null : <ChatAssistantFab />}
+    </>
+  );
+}
+
 const rootRoute = createRootRoute({
-  component: Outlet,
+  component: RootLayout,
   pendingComponent: RootPending,
   errorComponent: RootError,
 });

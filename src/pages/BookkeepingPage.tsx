@@ -250,6 +250,7 @@ export default function BookkeepingPage() {
   return (
     <FluentProvider theme={internoxTheme}>
       <div className="dashboard">
+     
         {/* ── Sidebar ── */}
         <aside className="dashboard-sidebar">
           <div className="dashboard-sidebar__top">
