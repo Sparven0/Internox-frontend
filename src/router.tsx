@@ -61,15 +61,6 @@ const dashboardRoute = createRoute({
   errorComponent: PageError,
 });
 
-const adminRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/admin",
-  beforeLoad: requireAuth,
-  component: lazy(() => import("./pages/AdminPage")),
-  pendingComponent: PagePending,
-  errorComponent: PageError,
-});
-
 const superAdminLoginRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/superadmin",
@@ -129,7 +120,6 @@ const aliasManagerRoute = createRoute({
 const routeTree = rootRoute.addChildren([
   loginRoute,
   dashboardRoute,
-  adminRoute,
   superAdminLoginRoute,
   superAdminDashboardRoute,
   setupRoute,
