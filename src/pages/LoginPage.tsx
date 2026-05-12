@@ -81,8 +81,6 @@ export default function LoginPage() {
 
           if ((usersData?.getUsersByCompanyId?.length ?? 0) > 0) {
             navigate({ to: "/dashboard" });
-          } else {
-            navigate({ to: "/admin" });
           }
         } else {
           navigate({ to: "/setup" });
