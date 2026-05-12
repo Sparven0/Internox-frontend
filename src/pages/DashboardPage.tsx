@@ -79,10 +79,16 @@ export default function DashboardPage() {
   const { data: onboardingData } = useQuery(GetOnboardingStatusDocument);
 
   const company = pageData?.getInitPageData?.company;
-  const users = pageData?.getInitPageData?.users ?? [];
+  const users = useMemo(
+    () => pageData?.getInitPageData?.users ?? [],
+    [pageData],
+  );
   const emails = integrationData?.getInitPageIntegrationData?.emails;
 
-  const customerList = customersData?.getAllCustomers ?? [];
+  const customerList = useMemo(
+    () => customersData?.getAllCustomers ?? [],
+    [customersData],
+  );
   const emailList: Array<{
     userId: string | number;
     emails?: string[];
@@ -183,7 +189,14 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (pageLoading) return;
-    void rebuildEventLog();
+    let cancelled = false;
+    void (async () => {
+      if (cancelled) return;
+      await rebuildEventLog();
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [pageLoading, rebuildEventLog]);
 
   useEffect(() => {
