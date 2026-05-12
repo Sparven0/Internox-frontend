@@ -377,7 +377,7 @@ export default function InvoicePage() {
 
   return (
     <FluentProvider theme={internoxTheme}>
-      <div className="dashboard">
+      <div className="dashboard invoice-layout">
         {/* ── Sidebar ── */}
         <aside className="dashboard-sidebar">
           <div className="dashboard-sidebar__top">

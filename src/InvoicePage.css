@@ -1,4 +1,13 @@
 /* ════════════════════════════════
+   LAYOUT OVERRIDE
+   Invoice page has no event-log panel,
+   so use a simpler 2-column grid.
+════════════════════════════════ */
+.invoice-layout {
+  grid-template-columns: 240px 1fr;
+}
+
+/* ════════════════════════════════
    FILTER BAR
 ════════════════════════════════ */
 .inv-filter-bar {
