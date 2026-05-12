@@ -28,12 +28,14 @@ import {
   LogoutDocument,
   AssignCustomerToEmployeeDocument,
   GetCustomersByEmployeeDocument,
+  GetInvoiceRecipientAliasesDocument,
 } from "../__generated__/graphql";
 import {
   customerIdsByNormalizedEmail,
   pairsToAssignFromSentEmails,
   parseIntegrationEmailPayload,
 } from "../lib/matchSentEmailsToCustomers";
+import { buildAliasCustomerIdMap } from "../lib/resolveRecipientToCustomers";
 import { buildDashboardEventRows, type DashboardEventRow } from "../lib/buildDashboardEventLog";
 import { useAuth } from "../context/useAuth";
 import { setAuthToken } from "../apolloClient";
@@ -118,7 +120,7 @@ export default function DashboardPage() {
   const rebuildEventLog = useCallback(async () => {
     setEventLogLoading(true);
     try {
-      const [intRes, initRes, custRes] = await Promise.all([
+      const [intRes, initRes, custRes, aliasRes] = await Promise.all([
         client.query({
           query: GetInitPageIntegrationDataDocument,
           fetchPolicy: "network-only",
@@ -129,6 +131,10 @@ export default function DashboardPage() {
         }),
         client.query({
           query: GetAllCustomersDocument,
+          fetchPolicy: "network-only",
+        }),
+        client.query({
+          query: GetInvoiceRecipientAliasesDocument,
           fetchPolicy: "network-only",
         }),
       ]);
@@ -155,6 +161,11 @@ export default function DashboardPage() {
       const customersRaw =
         intRes.data?.getInitPageIntegrationData?.customers;
       const custList = custRes.data?.getAllCustomers ?? [];
+      const invoiceRecipientAliases =
+        aliasRes.data?.invoiceRecipientAliases?.map((r) => ({
+          alias: r.alias,
+          customerId: r.customerId,
+        })) ?? [];
       setEventRows(
         buildDashboardEventRows({
           emailsRaw,
@@ -162,6 +173,7 @@ export default function DashboardPage() {
           customerList: custList,
           users: usersList,
           userToCustomerIds,
+          invoiceRecipientAliases,
         }),
       );
     } finally {
@@ -192,7 +204,20 @@ export default function DashboardPage() {
       ];
 
       const linked = new Map<string, Set<string>>();
+      let aliasMap = new Map<string, string>();
       try {
+        const { data: aliasData } = await client.query({
+          query: GetInvoiceRecipientAliasesDocument,
+          fetchPolicy: "network-only",
+        });
+        if (cancelled) return;
+        aliasMap = buildAliasCustomerIdMap(
+          aliasData?.invoiceRecipientAliases?.map((r) => ({
+            alias: r.alias,
+            customerId: r.customerId,
+          })) ?? [],
+        );
+
         await Promise.all(
           userIdsInPayload.map(async (userId) => {
             const { data } = await client.query({
@@ -219,6 +244,7 @@ export default function DashboardPage() {
         customersByEmail,
         validUserIds,
         linked,
+        aliasMap,
       );
 
       for (const { userId, customerId } of toAssign) {
@@ -540,6 +566,7 @@ export default function DashboardPage() {
           events={eventRows}
           loading={eventLogLoading}
           onRefresh={() => void rebuildEventLog()}
+          employees={users.map((u) => ({ id: u.id, email: u.email }))}
         />
       </div>
     </FluentProvider>

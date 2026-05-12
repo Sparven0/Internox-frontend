@@ -1,23 +1,13 @@
-/** Lowercases and trims; parses "Name <x@y.z>", mailto:, and bare addresses. */
+import {
+  normalizeEmailAddress,
+  normalizedEmailsFromAddressField,
+} from "./emailAddressNormalize";
+import { resolveRecipientRawToCustomerIds } from "./resolveRecipientToCustomers";
 
-export function normalizeEmailAddress(raw: string): string | null {
-  const s = raw.replace(/^mailto:/i, "").trim();
-  if (!s) return null;
-  const angle = s.match(/<([^>]+@[^>]+)>/);
-  const candidate = (angle?.[1] ?? s).trim();
-  const bare = candidate.match(/[\w.+-]+@[\w.-]+\.[a-z]{2,}/i);
-  return bare ? bare[0].toLowerCase() : null;
-}
-
-/** One header field may contain several addresses separated by ; or ,. */
-export function normalizedEmailsFromAddressField(raw: string): string[] {
-  const normSet = new Set<string>();
-  for (const token of raw.split(/[;,]+/)) {
-    const n = normalizeEmailAddress(token);
-    if (n) normSet.add(n);
-  }
-  return [...normSet];
-}
+export {
+  normalizeEmailAddress,
+  normalizedEmailsFromAddressField,
+} from "./emailAddressNormalize";
 
 export type IntegrationEmailEntry = {
   userId: string | number;
@@ -150,12 +140,13 @@ export function customerIdsByNormalizedEmail(
 
 export type AssignPair = { userId: string; customerId: string };
 
-/** Pairs to assign: recipient of sent mail matches a customer's email; skips entries with fetch errors. */
+/** Pairs to assign: mottagare matchas via faktura-alias och/eller kund-e-post. */
 export function pairsToAssignFromSentEmails(
   entries: IntegrationEmailEntry[],
   customersByEmail: Map<string, string[]>,
   validUserIds: Set<string>,
   alreadyLinked: Map<string, Set<string>>,
+  aliasToCustomerId: Map<string, string>,
 ): AssignPair[] {
   const out: AssignPair[] = [];
   const pendingKeys = new Set<string>();
@@ -169,19 +160,19 @@ export function pairsToAssignFromSentEmails(
 
     for (const raw of sentList) {
       if (typeof raw !== "string" || !raw.trim()) continue;
-      const norms = normalizedEmailsFromAddressField(raw);
-      if (norms.length === 0) continue;
-      for (const norm of norms) {
-        const customerIds = customersByEmail.get(norm);
-        if (!customerIds?.length) continue;
-        for (const customerId of customerIds) {
-          if (linked.has(customerId)) continue;
-          const dedupe = `${uid}:${customerId}`;
-          if (pendingKeys.has(dedupe)) continue;
-          pendingKeys.add(dedupe);
-          linked.add(customerId);
-          out.push({ userId: uid, customerId });
-        }
+      const customerIds = resolveRecipientRawToCustomerIds(
+        raw,
+        aliasToCustomerId,
+        customersByEmail,
+      );
+      if (customerIds.length === 0) continue;
+      for (const customerId of customerIds) {
+        if (linked.has(customerId)) continue;
+        const dedupe = `${uid}:${customerId}`;
+        if (pendingKeys.has(dedupe)) continue;
+        pendingKeys.add(dedupe);
+        linked.add(customerId);
+        out.push({ userId: uid, customerId });
       }
     }
   }

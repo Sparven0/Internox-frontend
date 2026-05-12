@@ -1,12 +1,21 @@
 import {
-  normalizedEmailsFromAddressField,
+  customerIdsByNormalizedEmail,
   parseIntegrationEmailPayload,
   type IntegrationEmailEntry,
 } from "./matchSentEmailsToCustomers";
+import {
+  buildAliasCustomerIdMap,
+  recipientTokens,
+  resolveRecipientTokensToCustomerIds,
+  stripTrailingEmptyAngleBrackets,
+  type AliasCustomerRow,
+} from "./resolveRecipientToCustomers";
 
 export type DashboardEventRow = {
   id: string;
   source: "email" | "fortnox";
+  /** Kort klassning, t.ex. Utgående e-post eller Fortnox eventType */
+  eventTypeLabel: string;
   summary: string;
   detail?: string;
   customerLabel: string;
@@ -60,19 +69,126 @@ function customerById(
   return list.find((c) => c.id === id);
 }
 
+function normalizeFortnoxCustomerNumberKey(
+  raw: string | number | undefined | null,
+): string {
+  if (raw === undefined || raw === null) return "";
+  return String(raw).trim();
+}
+
+function customerByFortnoxNumber(
+  num: string | number | undefined | null,
+  list: CustomerRow[],
+): CustomerRow | undefined {
+  const key = normalizeFortnoxCustomerNumberKey(num);
+  if (!key) return undefined;
+  return list.find((c) => {
+    const n = c.fortnoxCustomerNumber;
+    return n != null && normalizeFortnoxCustomerNumberKey(n) === key;
+  });
+}
+
+type FortnoxCustomerResolution = {
+  customer?: CustomerRow;
+  /** Kundnummer fanns i payload men ingen rad i listan hade samma #nr */
+  unmatchedFortnoxNumber?: string;
+};
+
+/**
+ * Mappar Fortnox-händelse-json till lokal kundrad via intern id eller kundnummer (#nr).
+ */
+function resolveFortnoxEventCustomer(
+  o: Record<string, unknown>,
+  list: CustomerRow[],
+  nestedDepth = 0,
+): FortnoxCustomerResolution {
+  if (nestedDepth > 3) return {};
+
+  const tryInternalThenNr = (val: string): CustomerRow | undefined => {
+    if (!val) return undefined;
+    const byId = customerById(val, list);
+    if (byId) return byId;
+    return customerByFortnoxNumber(val, list);
+  };
+
+  for (const key of ["customerId", "customer_id"] as const) {
+    const v = o[key];
+    if (typeof v !== "string" && typeof v !== "number") continue;
+    const s = String(v).trim();
+    if (!s) continue;
+    const hit = tryInternalThenNr(s);
+    if (hit) return { customer: hit };
+  }
+
+  const nrFieldKeys = [
+    "customerNumber",
+    "customer_number",
+    "CustomerNumber",
+    "fortnoxCustomerNumber",
+    "kundnummer",
+    "customerNo",
+    "customer_no",
+    "CustomerNr",
+  ];
+
+  let unmatchedNr: string | undefined;
+
+  for (const key of nrFieldKeys) {
+    const v = o[key];
+    if (typeof v !== "string" && typeof v !== "number") continue;
+    const raw = normalizeFortnoxCustomerNumberKey(v);
+    if (!raw) continue;
+    unmatchedNr = unmatchedNr ?? raw;
+    const hit = customerByFortnoxNumber(raw, list);
+    if (hit) return { customer: hit };
+  }
+
+  const cust = o.customer;
+  if (cust && typeof cust === "object") {
+    const nested = resolveFortnoxEventCustomer(
+      cust as Record<string, unknown>,
+      list,
+      nestedDepth + 1,
+    );
+    if (nested.customer) return nested;
+    if (nested.unmatchedFortnoxNumber)
+      return { unmatchedFortnoxNumber: nested.unmatchedFortnoxNumber };
+  }
+
+  if (unmatchedNr) return { unmatchedFortnoxNumber: unmatchedNr };
+
+  return {};
+}
+
+const EMAIL_EVENT_TYPE_OUTBOUND = "Utgående e-post";
+const EMAIL_EVENT_TYPE_FETCH_ERROR = "E-postfel";
+
+function fortnoxEventTypeLabel(o: Record<string, unknown> | undefined): string {
+  if (!o) return "Fortnox-händelse";
+  const candidates = [
+    o.eventType,
+    o.event_type,
+    o.category,
+    o.kind,
+    o.resourceType,
+    o.resource_type,
+    o.entityType,
+    o.entity_type,
+    o.changeType,
+    o.change_type,
+    o.operation,
+    o.action,
+    o.type,
+  ];
+  for (const v of candidates) {
+    if (typeof v === "string" && v.trim()) return v.trim();
+  }
+  return "Fortnox-händelse";
+}
+
 function formatCustomerLine(c: CustomerRow): string {
   const nr = c.fortnoxCustomerNumber ? ` · #${c.fortnoxCustomerNumber}` : "";
   return `${c.name ?? "—"}${nr}`;
-}
-
-function customersMatchingEmail(
-  norm: string,
-  customerList: CustomerRow[],
-): CustomerRow[] {
-  return customerList.filter((c) => {
-    if (!c.email) return false;
-    return normalizedEmailsFromAddressField(c.email).includes(norm);
-  });
 }
 
 export function buildEmailEvents(
@@ -80,9 +196,13 @@ export function buildEmailEvents(
   customerList: CustomerRow[],
   users: UserRow[],
   customerToUserIds: Map<string, string[]>,
+  invoiceRecipientAliases: AliasCustomerRow[],
 ): DashboardEventRow[] {
   const rows: DashboardEventRow[] = [];
   let seq = 0;
+  const aliasMap = buildAliasCustomerIdMap(invoiceRecipientAliases);
+  const customersByEmail = customerIdsByNormalizedEmail(customerList);
+
   for (const entry of parsed) {
     const emp =
       users.find((u) => String(u.id) === String(entry.userId)) ?? null;
@@ -92,6 +212,7 @@ export function buildEmailEvents(
       rows.push({
         id: `email-err-${seq++}`,
         source: "email",
+        eventTypeLabel: EMAIL_EVENT_TYPE_FETCH_ERROR,
         summary: "E-post kunde inte hämtas",
         detail: entry.error,
         customerLabel: "—",
@@ -103,13 +224,19 @@ export function buildEmailEvents(
 
     for (const recipient of entry.emails ?? []) {
       if (typeof recipient !== "string" || !recipient.trim()) continue;
-      const normList = normalizedEmailsFromAddressField(recipient);
-      if (normList.length === 0) {
+
+      const displayRecipient =
+        stripTrailingEmptyAngleBrackets(recipient.trim()) ||
+        recipient.trim();
+
+      const tokens = recipientTokens(recipient);
+      if (tokens.length === 0) {
         rows.push({
           id: `email-${seq++}`,
           source: "email",
+          eventTypeLabel: EMAIL_EVENT_TYPE_OUTBOUND,
           summary: "Skickat mejl (mottagare kunde inte tolkas)",
-          detail: recipient,
+          detail: displayRecipient,
           customerLabel: "—",
           linkedEmployeesLabel: "—",
           actorLabel: actor,
@@ -117,36 +244,62 @@ export function buildEmailEvents(
         continue;
       }
 
-      for (const norm of normList) {
-        const matches = customersMatchingEmail(norm, customerList);
-        if (matches.length === 0) {
+      const ids = resolveRecipientTokensToCustomerIds(
+        tokens,
+        aliasMap,
+        customersByEmail,
+      );
+
+      if (ids.length === 0) {
+        rows.push({
+          id: `email-${seq++}`,
+          source: "email",
+          eventTypeLabel: EMAIL_EVENT_TYPE_OUTBOUND,
+          summary: `Skickat mejl till ${displayRecipient}`,
+          detail:
+            "Ingen träff via faktura-alias eller kundens e-post i Fortnox-listan.",
+          customerLabel: "Ingen matchande kund",
+          linkedEmployeesLabel: "—",
+          actorLabel: actor,
+        });
+        continue;
+      }
+
+      for (const cid of ids) {
+        const c = customerById(cid, customerList);
+        if (!c) {
           rows.push({
-            id: `email-${seq++}-${norm}`,
+            id: `email-${seq++}-${cid}`,
             source: "email",
-            summary: `Skickat mejl till ${norm}`,
+            eventTypeLabel: EMAIL_EVENT_TYPE_OUTBOUND,
+            summary: `Skickat mejl till ${displayRecipient}`,
             detail:
-              "Ingen kund med denna e-post i Fortnox-listan.",
-            customerLabel: "Ingen matchande kund",
-            linkedEmployeesLabel: "—",
+              "Träff via alias men kunden saknas i den lokala kundlistan (synka eller kontrollera id).",
+            customerLabel: `ID ${cid}`,
+            linkedEmployeesLabel: formatLinkedEmployees(
+              cid,
+              users,
+              customerToUserIds,
+            ),
             actorLabel: actor,
           });
-        } else {
-          for (const c of matches) {
-            rows.push({
-              id: `email-${seq++}-${c.id}-${norm}`,
-              source: "email",
-              summary: `Skickat mejl till ${c.email ?? norm}`,
-              detail: `Mottagare matchar kund ${c.name ?? c.id}.`,
-              customerLabel: formatCustomerLine(c),
-              linkedEmployeesLabel: formatLinkedEmployees(
-                c.id,
-                users,
-                customerToUserIds,
-              ),
-              actorLabel: actor,
-            });
-          }
+          continue;
         }
+
+        rows.push({
+          id: `email-${seq++}-${c.id}`,
+          source: "email",
+          eventTypeLabel: EMAIL_EVENT_TYPE_OUTBOUND,
+          summary: `Skickat mejl till ${displayRecipient}`,
+          detail: `Matchad kund: ${c.name ?? c.id}.`,
+          customerLabel: formatCustomerLine(c),
+          linkedEmployeesLabel: formatLinkedEmployees(
+            c.id,
+            users,
+            customerToUserIds,
+          ),
+          actorLabel: actor,
+        });
       }
     }
   }
@@ -162,27 +315,37 @@ function buildFortnoxEvents(
   const rows: DashboardEventRow[] = [];
   let seq = 0;
 
-  const pushRow = (
+  const pushResolvedRow = (
     title: string,
     detail: string | undefined,
-    customerId?: string,
+    resolution: FortnoxCustomerResolution,
+    eventTypeLabel: string,
   ) => {
-    const c =
-      customerId != null ? customerById(customerId, customerList) : undefined;
-    const custLabel =
-      c != null
-        ? formatCustomerLine(c)
-        : customerId != null
-          ? `ID ${customerId} (ej i lokal lista)`
-          : "—";
-    const cid = c?.id ?? customerId;
+    const { customer, unmatchedFortnoxNumber } = resolution;
+    let custLabel: string;
+    let cid: string | undefined;
+    if (customer) {
+      custLabel = formatCustomerLine(customer);
+      cid = customer.id;
+    } else if (unmatchedFortnoxNumber) {
+      custLabel = `#${unmatchedFortnoxNumber} (ej i kundlistan)`;
+      cid = undefined;
+    } else {
+      custLabel = "—";
+      cid = undefined;
+    }
     rows.push({
       id: `fn-${seq++}`,
       source: "fortnox",
+      eventTypeLabel,
       summary: title,
       detail,
       customerLabel: custLabel,
-      linkedEmployeesLabel: formatLinkedEmployees(cid, users, customerToUserIds),
+      linkedEmployeesLabel: formatLinkedEmployees(
+        cid,
+        users,
+        customerToUserIds,
+      ),
     });
   };
 
@@ -204,18 +367,15 @@ function buildFortnoxEvents(
           : typeof o.text === "string"
             ? o.text
             : undefined;
-      const rawCid = o.customerId ?? o.customer_id;
-      const customerId =
-        typeof rawCid === "string" || typeof rawCid === "number"
-          ? String(rawCid)
-          : undefined;
-      pushRow(title, detail, customerId);
+      const resolution = resolveFortnoxEventCustomer(o, customerList);
+      pushResolvedRow(title, detail, resolution, fortnoxEventTypeLabel(o));
     }
     if (rows.length === 0 && raw.length > 0) {
-      pushRow(
+      pushResolvedRow(
         `Fortnox-data (${raw.length} poster)`,
         "Strukturen kändes inte igen. Öppna nätverksfliken och inspektera JSON om du felsöker.",
-        undefined,
+        {},
+        "Fortnox — okänd struktur",
       );
     }
     return rows;
@@ -232,19 +392,21 @@ function buildFortnoxEvents(
       );
     }
     if (typeof o.message === "string") {
-      pushRow(
+      pushResolvedRow(
         o.message,
         typeof o.summary === "string" ? o.summary : undefined,
-        undefined,
+        resolveFortnoxEventCustomer(o, customerList),
+        fortnoxEventTypeLabel(o),
       );
       return rows;
     }
     const keys = Object.keys(o);
     if (keys.length > 0) {
-      pushRow(
+      pushResolvedRow(
         "Fortnox-integration uppdaterad",
         `Fält: ${keys.slice(0, 8).join(", ")}${keys.length > 8 ? "…" : ""}`,
-        undefined,
+        resolveFortnoxEventCustomer(o, customerList),
+        fortnoxEventTypeLabel(o),
       );
     }
   }
@@ -258,17 +420,20 @@ export function buildDashboardEventRows(args: {
   customerList: CustomerRow[];
   users: UserRow[];
   userToCustomerIds: Map<string, string[]>;
+  invoiceRecipientAliases?: AliasCustomerRow[];
 }): DashboardEventRow[] {
   const parsed = parseIntegrationEmailPayload(args.emailsRaw, args.users);
   const customerToUserIds = invertUserToCustomers(
     args.users,
     args.userToCustomerIds,
   );
+  const aliases = args.invoiceRecipientAliases ?? [];
   const emailRows = buildEmailEvents(
     parsed,
     args.customerList,
     args.users,
     customerToUserIds,
+    aliases,
   );
   const fnRows = buildFortnoxEvents(
     args.customersIntegrationRaw,
