@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { useQuery, useMutation } from "@apollo/client/react";
+import { useState, useEffect, useMemo, useCallback } from "react";
+import { useQuery, useMutation, useApolloClient } from "@apollo/client/react";
 import { useNavigate, Link } from "@tanstack/react-router";
 import {
   FluentProvider,
@@ -25,11 +25,20 @@ import {
   GetAllCustomersDocument,
   GetOnboardingStatusDocument,
   LogoutDocument,
+  AssignCustomerToEmployeeDocument,
+  GetCustomersByEmployeeDocument,
 } from "../__generated__/graphql";
+import {
+  customerIdsByNormalizedEmail,
+  pairsToAssignFromSentEmails,
+  parseIntegrationEmailPayload,
+} from "../lib/matchSentEmailsToCustomers";
+import { buildDashboardEventRows, type DashboardEventRow } from "../lib/buildDashboardEventLog";
 import { useAuth } from "../context/useAuth";
 import { setAuthToken } from "../apolloClient";
 import { fortnoxAuthUrl } from "../backendOrigin";
 import EmployeeCustomerPanel from "../components/EmployeeCustomerPanel";
+import DashboardEventLog from "../components/DashboardEventLog";
 import "../DashboardPage.css";
 
 const useStyles = makeStyles({
@@ -42,10 +51,16 @@ export default function DashboardPage() {
   const classes = useStyles();
   const navigate = useNavigate();
   const { setToken } = useAuth();
+  const client = useApolloClient();
   const [logout] = useMutation(LogoutDocument);
+  const [assignCustomerToEmployee] = useMutation(
+    AssignCustomerToEmployeeDocument,
+  );
   const [expandedEmployeeId, setExpandedEmployeeId] = useState<string | null>(
     null,
   );
+  const [eventRows, setEventRows] = useState<DashboardEventRow[]>([]);
+  const [eventLogLoading, setEventLogLoading] = useState(false);
 
   const { data: pageData, loading: pageLoading } = useQuery(
     GetInitPageDataDocument,
@@ -71,6 +86,175 @@ export default function DashboardPage() {
     error?: string;
   }> = Array.isArray(emails) ? emails : [];
 
+  const { integrationEmailsKey, parsedIntegrationEmails } = useMemo(() => {
+    const parsed = parseIntegrationEmailPayload(emails, users);
+    return {
+      parsedIntegrationEmails: parsed,
+      integrationEmailsKey: JSON.stringify(
+        parsed.map((e) => ({
+          userId: e.userId,
+          error: e.error ?? null,
+          emails: [...(e.emails ?? [])].sort(),
+        })),
+      ),
+    };
+  }, [emails, users]);
+
+  const customersKey = useMemo(
+    () =>
+      [...customerList]
+        .map((c) => `${c.id}\0${c.email ?? ""}`)
+        .sort()
+        .join("|"),
+    [customerList],
+  );
+
+  const validUserIds = useMemo(
+    () => new Set(users.map((u) => u.id)),
+    [users],
+  );
+
+  const rebuildEventLog = useCallback(async () => {
+    setEventLogLoading(true);
+    try {
+      const [intRes, initRes, custRes] = await Promise.all([
+        client.query({
+          query: GetInitPageIntegrationDataDocument,
+          fetchPolicy: "network-only",
+        }),
+        client.query({
+          query: GetInitPageDataDocument,
+          fetchPolicy: "network-only",
+        }),
+        client.query({
+          query: GetAllCustomersDocument,
+          fetchPolicy: "network-only",
+        }),
+      ]);
+      const usersList = initRes.data?.getInitPageData?.users ?? [];
+      if (usersList.length === 0) {
+        setEventRows([]);
+        return;
+      }
+      const userToCustomerIds = new Map<string, string[]>();
+      await Promise.all(
+        usersList.map(async (u) => {
+          const { data } = await client.query({
+            query: GetCustomersByEmployeeDocument,
+            variables: { userId: u.id },
+            fetchPolicy: "network-only",
+          });
+          userToCustomerIds.set(
+            u.id,
+            data?.getCustomersByEmployee?.map((c) => c.id) ?? [],
+          );
+        }),
+      );
+      const emailsRaw = intRes.data?.getInitPageIntegrationData?.emails;
+      const customersRaw =
+        intRes.data?.getInitPageIntegrationData?.customers;
+      const custList = custRes.data?.getAllCustomers ?? [];
+      setEventRows(
+        buildDashboardEventRows({
+          emailsRaw,
+          customersIntegrationRaw: customersRaw,
+          customerList: custList,
+          users: usersList,
+          userToCustomerIds,
+        }),
+      );
+    } finally {
+      setEventLogLoading(false);
+    }
+  }, [client]);
+
+  useEffect(() => {
+    if (pageLoading) return;
+    void rebuildEventLog();
+  }, [pageLoading, rebuildEventLog]);
+
+  useEffect(() => {
+    if (integrationLoading || customersLoading) return;
+    if (!integrationEmailsKey || customerList.length === 0) return;
+    if (parsedIntegrationEmails.length === 0) return;
+    if (validUserIds.size === 0) return;
+
+    let cancelled = false;
+
+    void (async () => {
+      const userIdsInPayload = [
+        ...new Set(
+          parsedIntegrationEmails
+            .map((e) => String(e.userId))
+            .filter((id) => validUserIds.has(id)),
+        ),
+      ];
+
+      const linked = new Map<string, Set<string>>();
+      try {
+        await Promise.all(
+          userIdsInPayload.map(async (userId) => {
+            const { data } = await client.query({
+              query: GetCustomersByEmployeeDocument,
+              variables: { userId },
+              fetchPolicy: "network-only",
+            });
+            if (cancelled) return;
+            linked.set(
+              userId,
+              new Set(data?.getCustomersByEmployee?.map((c) => c.id) ?? []),
+            );
+          }),
+        );
+      } catch {
+        return;
+      }
+
+      if (cancelled) return;
+
+      const customersByEmail = customerIdsByNormalizedEmail(customerList);
+      const toAssign = pairsToAssignFromSentEmails(
+        parsedIntegrationEmails,
+        customersByEmail,
+        validUserIds,
+        linked,
+      );
+
+      for (const { userId, customerId } of toAssign) {
+        if (cancelled) return;
+        try {
+          await assignCustomerToEmployee({ variables: { userId, customerId } });
+        } catch (e) {
+          if (import.meta.env.DEV) {
+            console.warn("[auto-link customer]", { userId, customerId, e });
+          }
+        }
+      }
+
+      if (!cancelled && toAssign.length > 0) {
+        await client.refetchQueries({
+          include: [GetCustomersByEmployeeDocument],
+        });
+        void rebuildEventLog();
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    assignCustomerToEmployee,
+    client,
+    customerList,
+    customersKey,
+    integrationEmailsKey,
+    integrationLoading,
+    customersLoading,
+    parsedIntegrationEmails,
+    rebuildEventLog,
+    validUserIds,
+  ]);
+
   const handleLogout = async () => {
     try { await logout(); } catch { /* ignore */ }
     setToken(null);
@@ -84,11 +268,6 @@ export default function DashboardPage() {
 
   const showFortnoxConnect =
     onboardingData?.getOnboardingStatus?.hasFortnox === false;
-  const hasFortnox = onboardingData?.getOnboardingStatus?.hasFortnox;
-
-  useEffect(() => {
-    console.log("hasFortnox", hasFortnox);
-  }, [hasFortnox]);
 
   return (
     <FluentProvider theme={internoxTheme}>
@@ -352,6 +531,12 @@ export default function DashboardPage() {
             )}
           </section>
         </main>
+
+        <DashboardEventLog
+          events={eventRows}
+          loading={eventLogLoading}
+          onRefresh={() => void rebuildEventLog()}
+        />
       </div>
     </FluentProvider>
   );
