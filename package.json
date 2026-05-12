@@ -16,7 +16,8 @@
     "@tanstack/react-router": "^1.168.23",
     "graphql": "^16.13.2",
     "react": "^19.2.5",
-    "react-dom": "^19.2.5"
+    "react-dom": "^19.2.5",
+    "react-markdown": "^10.1.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

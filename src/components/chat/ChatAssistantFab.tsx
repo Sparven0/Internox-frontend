@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-  import { ChatApiError, sendChat, type ChatMessage } from '../../lib/chatApi';
+import ReactMarkdown from 'react-markdown';
+import { ChatApiError, sendChat, type ChatMessage } from '../../lib/chatApi';
   const drawerWidth = 400;
   export function ChatAssistantFab() {
     const [open, setOpen] = useState(false);
@@ -204,11 +205,14 @@ import { useCallback, useEffect, useRef, useState } from 'react';
                 <div
                   style={{
                     fontSize: 14,
-                    whiteSpace: 'pre-wrap',
                     wordBreak: 'break-word',
                   }}
                 >
-                  {m.content}
+                  {m.role === 'assistant' ? (
+                    <ReactMarkdown>{m.content}</ReactMarkdown>
+                  ) : (
+                    m.content
+                  )}
                 </div>
               </div>
             ))}
