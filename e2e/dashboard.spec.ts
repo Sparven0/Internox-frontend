@@ -30,9 +30,10 @@ test.describe("Dashboard", () => {
   // ── Stats row ─────────────────────────────────────────────────────────────
 
   test("stats row renders all three labels", async ({ page }) => {
-    await expect(page.getByText("Anställda")).toBeVisible();
-    await expect(page.getByText("Fortnox-kunder")).toBeVisible();
-    await expect(page.getByText("E-postkopplingar")).toBeVisible();
+    const stats = page.locator(".dashboard-stats");
+    await expect(stats.getByText("Anställda")).toBeVisible();
+    await expect(stats.getByText("Fortnox-kunder")).toBeVisible();
+    await expect(stats.getByText("E-postkopplingar")).toBeVisible();
   });
 
   // ── Employee table ────────────────────────────────────────────────────────
