@@ -12,7 +12,7 @@ setup("authenticate", async ({ page }) => {
         status: 200,
         contentType: "application/json",
         body: JSON.stringify({
-          data: { login: { companyId: "company-123" } },
+          data: { login: { companyId: "b8ba5b4d_10ff_443f_93ee_e629ad36ca02" } },
         }),
       });
     }
@@ -38,7 +38,7 @@ setup("authenticate", async ({ page }) => {
         status: 200,
         contentType: "application/json",
         body: JSON.stringify({
-          data: { getUsersByCompanyId: [{ id: "user-1" }] },
+          data: { getUsersByCompanyId: [{ id: "61943543-5897-4ea2-8844-7f615a199293" }] },
         }),
       });
     }
@@ -46,11 +46,18 @@ setup("authenticate", async ({ page }) => {
     return route.continue();
   });
 
+  async function wait(){
+    return new Promise(resolve => setTimeout(resolve, 3000));
+  }
+
   await page.goto("/");
-  await page.getByLabel("E-post").fill("admin@foretaget.se");
-  await page.getByLabel("Lösenord").fill("password123");
-  await page.getByLabel("Företagsdomän").fill("foretaget.se");
+  await page.getByLabel("E-post").fill("admin@acme.com");
+  await page.getByLabel("Lösenord").fill("admin");
+  await page.getByLabel("Företagsdomän").fill("gmail.com");
   await page.getByRole("button", { name: "Logga in" }).click();
+
+  await wait();
+
   await page.waitForURL("/dashboard");
 
   // Save cookies/storage so other tests skip login

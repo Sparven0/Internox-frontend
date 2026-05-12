@@ -3,10 +3,10 @@ import { test, expect, Page } from "@playwright/test";
 const baseHandlers = {
   GetInitPageData: {
     getInitPageData: {
-      company: { id: "co-1", name: "Testbolaget AB" },
+      company: { id: "b8ba5b4d-10ff-443f-93ee-e629ad36ca02", name: "ACME AB" },
       users: [
-        { id: "u1", email: "anna@test.se", role: "admin" },
-        { id: "u2", email: "erik@test.se", role: "user" },
+        { id: "61943543-5897-4ea2-8844-7f615a199293", email: "admin@acme.com", role: "admin" },
+        { id: "d4fa7727-246e-40a1-bfa5-428cd55eb892", email: "fynnxav@gmail.com", role: "employee" },
       ],
     },
   },
@@ -15,8 +15,8 @@ const baseHandlers = {
   },
   GetAllCustomers: {
     getAllCustomers: [
-      { id: "c1", fortnoxCustomerNumber: "10", name: "Kund AB", email: "kund@ab.se" },
-      { id: "c2", fortnoxCustomerNumber: "11", name: "Partner KB", email: "p@kb.se" },
+      { id: "84ce7f9f-2ab0-41d2-aa0f-077a6d7395a7", fortnoxCustomerNumber: "3", name: "Ruangrads Vårrullar", email: "ruangrad@varrollar.se" },
+      { id: "8683b886-a69a-4f83-a21a-8614a1e72f0b", fortnoxCustomerNumber: "6", name: "Gustaf Vingren", email: "gustafwingren@hotmail.se" },
     ],
   },
   GetOnboardingStatus: {
@@ -58,16 +58,16 @@ test.describe("Dashboard", () => {
   });
 
   test("shows company name in topbar and sidebar", async ({ page }) => {
-    await expect(page.getByText("Testbolaget AB").first()).toBeVisible();
+    await expect(page.getByText("ACME AB").first()).toBeVisible();
   });
 
   // ── Employee table ────────────────────────────────────────────────────────
 
   test("renders employee list with email and role badge", async ({ page }) => {
-    await expect(page.getByText("anna@test.se")).toBeVisible();
-    await expect(page.getByText("erik@test.se")).toBeVisible();
+    await expect(page.getByText("admin@acme.com")).toBeVisible();
+    await expect(page.getByText("fynnxav@gmail.com")).toBeVisible();
     await expect(page.getByText("admin")).toBeVisible();
-    await expect(page.getByText("user")).toBeVisible();
+    await expect(page.getByText("employee")).toBeVisible();
   });
 
   test("expanding employee loads their customers panel", async ({ page }) => {
@@ -80,7 +80,7 @@ test.describe("Dashboard", () => {
           body: JSON.stringify({
             data: {
               getCustomersByEmployee: [
-                { id: "c1", name: "Kund AB", fortnoxCustomerNumber: "10", email: null },
+                { id: "84ce7f9f-2ab0-41d2-aa0f-077a6d7395a7", name: "Ruangrads Vårrullar", fortnoxCustomerNumber: "3", email: "ruangrad@varrollar.se" },
               ],
             },
           }),
