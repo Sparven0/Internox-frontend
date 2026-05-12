@@ -29,28 +29,14 @@ test.describe("Dashboard", () => {
 
   // ── Stats row ─────────────────────────────────────────────────────────────
 
-<<<<<<< HEAD
   test("stats row renders all three labels", async ({ page }) => {
     await expect(page.getByText("Anställda")).toBeVisible();
     await expect(page.getByText("Fortnox-kunder")).toBeVisible();
     await expect(page.getByText("E-postkopplingar")).toBeVisible();
-=======
-  test("stats row shows correct counts", async ({ page }) => {
-    // 2 users, 2 customers
-    const stats = page.locator(".dashboard-stats");
-    await expect(stats.getByText("2").first()).toBeVisible(); // Anställda
-    await expect(stats.getByText("Anställda")).toBeVisible();
-    await expect(stats.getByText("Fortnox-kunder")).toBeVisible();
-  });
-
-  test("shows company name in topbar and sidebar", async ({ page }) => {
-    await expect(page.getByText("ACME AB").first()).toBeVisible();
->>>>>>> 750ace22befb1d30c298859b548a834ccd17c6f7
   });
 
   // ── Employee table ────────────────────────────────────────────────────────
 
-<<<<<<< HEAD
   test("employees section heading is visible", async ({ page }) => {
     await expect(
       page.locator(".dashboard-section__title").filter({ hasText: "Anställda" })
@@ -61,33 +47,6 @@ test.describe("Dashboard", () => {
     const buttons = page.locator(".ec-customers-btn");
     await expect(buttons.first()).toBeVisible();
   });
-=======
-  test("renders employee list with email and role badge", async ({ page }) => {
-    await expect(page.getByText("admin@acme.com")).toBeVisible();
-    await expect(page.getByText("fynnxav@gmail.com")).toBeVisible();
-    await expect(page.getByText("admin")).toBeVisible();
-    await expect(page.getByText("employee")).toBeVisible();
-  });
-
-  test("expanding employee loads their customers panel", async ({ page }) => {
-    await page.route("**/graphql", async (route) => {
-      const body = route.request().postDataJSON();
-      if (body?.operationName === "GetCustomersByEmployee") {
-        return route.fulfill({
-          status: 200,
-          contentType: "application/json",
-          body: JSON.stringify({
-            data: {
-              getCustomersByEmployee: [
-                { id: "84ce7f9f-2ab0-41d2-aa0f-077a6d7395a7", name: "Ruangrads Vårrullar", fortnoxCustomerNumber: "3", email: "ruangrad@varrollar.se" },
-              ],
-            },
-          }),
-        });
-      }
-      return route.continue();
-    });
->>>>>>> 750ace22befb1d30c298859b548a834ccd17c6f7
 
   test("clicking Kunder expands the employee panel", async ({ page }) => {
     const btn = page.locator(".ec-customers-btn").first();
