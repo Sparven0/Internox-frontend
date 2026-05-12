@@ -17,6 +17,7 @@ import {
   DocumentTable20Regular,
   PlugConnected20Regular,
   Receipt20Regular,
+  LinkAdd20Regular,
 } from "@fluentui/react-icons";
 import { internoxTheme } from "../theme";
 import {
@@ -305,6 +306,9 @@ export default function DashboardPage() {
               </Link>
               <Link to="/invoices" className="dashboard-nav__item">
                 <Receipt20Regular /> Fakturor
+              </Link>
+              <Link to="/aliases" className="dashboard-nav__item">
+                <LinkAdd20Regular /> Faktura-alias
               </Link>
             </nav>
           </div>

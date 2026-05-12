@@ -254,6 +254,19 @@ export const GET_INVOICES = gql`
       vat
       currency
       status
+      ourReference
+      yourReference
+      syncedAt
+      bookedAt
+      rows {
+        rowNumber
+        articleNumber
+        description
+        quantity
+        price
+        vatPercent
+        total
+      }
     }
   }
 `;
@@ -272,6 +285,8 @@ export const GET_INVOICE_DETAIL = gql`
       status
       ourReference
       yourReference
+      syncedAt
+      bookedAt
       rows {
         rowNumber
         articleNumber
@@ -288,5 +303,21 @@ export const GET_INVOICE_DETAIL = gql`
 export const GET_FORTNOX_AUTH_URL = gql`
   query GetFortnoxAuthUrl {
     getFortnoxAuthUrl
+  }
+`;
+
+export const GET_INVOICE_RECIPIENT_ALIASES = gql`
+  query GetInvoiceRecipientAliases {
+    invoiceRecipientAliases {
+      id
+      alias
+      customerId
+      customer {
+        id
+        name
+        email
+      }
+      createdAt
+    }
   }
 `;
