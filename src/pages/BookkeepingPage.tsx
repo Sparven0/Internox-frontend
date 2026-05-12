@@ -6,6 +6,7 @@ import {
   Building20Regular,
   SignOut20Regular,
   DocumentTable20Regular,
+  History20Regular,
   PlugConnected20Regular,
   ChevronLeft20Regular,
   ChevronRight20Regular,
@@ -22,13 +23,13 @@ import {
   GetFinancialYearsDocument,
   GetAccountsDocument,
   GetVouchersDocument,
-  GetVoucherDetailDocument,
   GetOnboardingStatusDocument,
   LogoutDocument,
 } from "../__generated__/graphql";
 import { useAuth } from "../context/useAuth";
 import { setAuthToken } from "../apolloClient";
 import { fortnoxAuthUrl } from "../backendOrigin";
+import VoucherDetailPanel from "../components/VoucherDetailPanel";
 import "../DashboardPage.css";
 import "../BookkeepingPage.css";
 
@@ -77,69 +78,6 @@ function SkeletonRows({
         </div>
       ))}
     </>
-  );
-}
-
-function VoucherDetailPanel({ voucherId }: { voucherId: string }) {
-  const classes = useStyles();
-  const { data, loading, error } = useQuery(GetVoucherDetailDocument, {
-    variables: { voucherId },
-  });
-
-  if (loading) {
-    return (
-      <div className="bk-detail-panel">
-        <div className="bk-detail-loading">
-          <Spinner size="tiny" className={classes.spinner} />
-          Laddar verifikation…
-        </div>
-      </div>
-    );
-  }
-  if (error) {
-    return (
-      <div className="bk-detail-panel">
-        <p className="bk-error">Kunde inte hämta verifikationsdetaljer.</p>
-      </div>
-    );
-  }
-
-  const detail = data?.getVoucherDetail;
-  if (!detail) return null;
-
-  const rows = detail.rows ?? [];
-  const totalDebit = rows.reduce((s, r) => s + (r.debit ?? 0), 0);
-  const totalCredit = rows.reduce((s, r) => s + (r.credit ?? 0), 0);
-
-  return (
-    <div className="bk-detail-panel">
-      {rows.length === 0 ? (
-        <p className="bk-detail-empty">Inga rader.</p>
-      ) : (
-        <>
-          <div className="bk-detail-head">
-            <span>Konto</span>
-            <span>Beskrivning</span>
-            <span style={{ textAlign: "right" }}>Debet</span>
-            <span style={{ textAlign: "right" }}>Kredit</span>
-          </div>
-          {rows.map((row, idx) => (
-            <div key={idx} className="bk-detail-row">
-              <span className="bk-cell-num">{row.accountNumber}</span>
-              <span>{row.description ?? "—"}</span>
-              <span className="bk-detail-amount">{fmtSEK(row.debit)}</span>
-              <span className="bk-detail-amount">{fmtSEK(row.credit)}</span>
-            </div>
-          ))}
-          <div className="bk-detail-totals">
-            <span />
-            <span>Summa</span>
-            <span className="bk-detail-amount">{fmtSEK(totalDebit)}</span>
-            <span className="bk-detail-amount">{fmtSEK(totalCredit)}</span>
-          </div>
-        </>
-      )}
-    </div>
   );
 }
 
@@ -263,6 +201,9 @@ export default function BookkeepingPage() {
             <nav className="dashboard-nav">
               <Link to="/dashboard" className="dashboard-nav__item">
                 <Building20Regular /> Översikt
+              </Link>
+              <Link to="/activity" className="dashboard-nav__item">
+                <History20Regular /> Tidslinje
               </Link>
               <Link
                 to="/bookkeeping"

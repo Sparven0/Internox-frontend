@@ -11,6 +11,7 @@ import {
   Building20Regular,
   SignOut20Regular,
   DocumentTable20Regular,
+  History20Regular,
   Receipt20Regular,
   ChevronDown20Regular,
   ChevronUp20Regular,
@@ -415,6 +416,9 @@ export default function InvoicePage() {
             <nav className="dashboard-nav">
               <Link to="/dashboard" className="dashboard-nav__item">
                 <Building20Regular /> Översikt
+              </Link>
+              <Link to="/activity" className="dashboard-nav__item">
+                <History20Regular /> Tidslinje
               </Link>
               <Link to="/bookkeeping" className="dashboard-nav__item">
                 <DocumentTable20Regular /> Bokföring

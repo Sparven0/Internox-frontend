@@ -117,6 +117,15 @@ const aliasManagerRoute = createRoute({
   errorComponent: PageError,
 });
 
+const activityTimelineRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/activity",
+  beforeLoad: requireAuth,
+  component: lazy(() => import("./pages/ActivityTimelinePage")),
+  pendingComponent: PagePending,
+  errorComponent: PageError,
+});
+
 const routeTree = rootRoute.addChildren([
   loginRoute,
   dashboardRoute,
@@ -126,6 +135,7 @@ const routeTree = rootRoute.addChildren([
   bookkeepingRoute,
   invoicesRoute,
   aliasManagerRoute,
+  activityTimelineRoute,
 ]);
 
 export const router = createRouter({ routeTree });

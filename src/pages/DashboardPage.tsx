@@ -18,6 +18,7 @@ import {
   PlugConnected20Regular,
   Receipt20Regular,
   LinkAdd20Regular,
+  History20Regular,
 } from "@fluentui/react-icons";
 import { internoxTheme } from "../theme";
 import {
@@ -340,6 +341,9 @@ export default function DashboardPage() {
               <a href="#emails" className="dashboard-nav__item">
                 <Mail20Regular /> E-post
               </a>
+              <Link to="/activity" className="dashboard-nav__item">
+                <History20Regular /> Tidslinje
+              </Link>
               <Link to="/bookkeeping" className="dashboard-nav__item">
                 <DocumentTable20Regular /> Bokföring
               </Link>

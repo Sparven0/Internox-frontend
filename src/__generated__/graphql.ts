@@ -330,6 +330,7 @@ export type Query = {
   getInvoices: Array<FortnoxInvoice>;
   getOnboardingStatus: OnboardingStatus;
   getSentEmails?: Maybe<Array<Maybe<SentEmail>>>;
+  getUserActivityTimeline: Array<TimelineEvent>;
   getUsers?: Maybe<Array<Maybe<User>>>;
   getUsersByCompanyId?: Maybe<Array<Maybe<User>>>;
   getVoucherDetail?: Maybe<FortnoxVoucherDetail>;
@@ -395,6 +396,14 @@ export type QueryGetSentEmailsArgs = {
 };
 
 
+export type QueryGetUserActivityTimelineArgs = {
+  fromDate: Scalars['String']['input'];
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  toDate: Scalars['String']['input'];
+  userId: Scalars['ID']['input'];
+};
+
+
 export type QueryGetUsersArgs = {
   company: Scalars['String']['input'];
 };
@@ -431,6 +440,47 @@ export type SuperAdminAuthPayload = {
   __typename: 'SuperAdminAuthPayload';
   role: Scalars['String']['output'];
   userName: Scalars['String']['output'];
+};
+
+export type TimelineEmailActivity = {
+  __typename: 'TimelineEmailActivity';
+  id: Scalars['ID']['output'];
+  messageId?: Maybe<Scalars['String']['output']>;
+  recipientEmail: Scalars['String']['output'];
+  subject?: Maybe<Scalars['String']['output']>;
+};
+
+export type TimelineEvent = {
+  __typename: 'TimelineEvent';
+  emailActivity?: Maybe<TimelineEmailActivity>;
+  fortnoxVoucher?: Maybe<TimelineFortnoxVoucherBrief>;
+  kind: TimelineEventKind;
+  mailSent?: Maybe<TimelineMailSent>;
+  occurredAt: Scalars['String']['output'];
+};
+
+export enum TimelineEventKind {
+  EmailActivity = 'EMAIL_ACTIVITY',
+  FortnoxVoucher = 'FORTNOX_VOUCHER',
+  Mail = 'MAIL'
+}
+
+export type TimelineFortnoxVoucherBrief = {
+  __typename: 'TimelineFortnoxVoucherBrief';
+  description?: Maybe<Scalars['String']['output']>;
+  financialYearId: Scalars['ID']['output'];
+  id: Scalars['ID']['output'];
+  transactionDate: Scalars['String']['output'];
+  voucherNumber: Scalars['Int']['output'];
+  voucherSeries: Scalars['String']['output'];
+};
+
+export type TimelineMailSent = {
+  __typename: 'TimelineMailSent';
+  fromAddress: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  messageId: Scalars['String']['output'];
+  subject?: Maybe<Scalars['String']['output']>;
 };
 
 export type User = {
@@ -717,6 +767,16 @@ export type GetInvoiceRecipientAliasesQueryVariables = Exact<{ [key: string]: ne
 
 export type GetInvoiceRecipientAliasesQuery = { invoiceRecipientAliases: Array<{ __typename: 'InvoiceRecipientAlias', id: string, alias: string, customerId: string, createdAt: string, customer: { __typename: 'Customer', id: string, name: string, email?: string | null } }> };
 
+export type GetUserActivityTimelineQueryVariables = Exact<{
+  userId: Scalars['ID']['input'];
+  fromDate: Scalars['String']['input'];
+  toDate: Scalars['String']['input'];
+  limit?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+
+export type GetUserActivityTimelineQuery = { getUserActivityTimeline: Array<{ __typename: 'TimelineEvent', kind: TimelineEventKind, occurredAt: string, mailSent?: { __typename: 'TimelineMailSent', id: string, subject?: string | null, messageId: string, fromAddress: string } | null, emailActivity?: { __typename: 'TimelineEmailActivity', id: string, subject?: string | null, recipientEmail: string, messageId?: string | null } | null, fortnoxVoucher?: { __typename: 'TimelineFortnoxVoucherBrief', id: string, voucherSeries: string, voucherNumber: number, transactionDate: string, description?: string | null, financialYearId: string } | null }> };
+
 
 export const LoginDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"Login"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"email"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"password"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"companyDomain"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"login"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"email"},"value":{"kind":"Variable","name":{"kind":"Name","value":"email"}}},{"kind":"Argument","name":{"kind":"Name","value":"password"},"value":{"kind":"Variable","name":{"kind":"Name","value":"password"}}},{"kind":"Argument","name":{"kind":"Name","value":"companyDomain"},"value":{"kind":"Variable","name":{"kind":"Name","value":"companyDomain"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"email"}},{"kind":"Field","name":{"kind":"Name","value":"role"}},{"kind":"Field","name":{"kind":"Name","value":"companyId"}}]}}]}}]} as unknown as DocumentNode<LoginMutation, LoginMutationVariables>;
 export const CreateCompanyDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateCompany"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"name"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"domain"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createCompany"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"name"},"value":{"kind":"Variable","name":{"kind":"Name","value":"name"}}},{"kind":"Argument","name":{"kind":"Name","value":"domain"},"value":{"kind":"Variable","name":{"kind":"Name","value":"domain"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"domain"}}]}}]}}]} as unknown as DocumentNode<CreateCompanyMutation, CreateCompanyMutationVariables>;
@@ -756,3 +816,4 @@ export const GetInvoicesDocument = {"kind":"Document","definitions":[{"kind":"Op
 export const GetInvoiceDetailDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetInvoiceDetail"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"invoiceNumber"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getInvoiceDetail"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"invoiceNumber"},"value":{"kind":"Variable","name":{"kind":"Name","value":"invoiceNumber"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"invoiceNumber"}},{"kind":"Field","name":{"kind":"Name","value":"customerNumber"}},{"kind":"Field","name":{"kind":"Name","value":"invoiceDate"}},{"kind":"Field","name":{"kind":"Name","value":"dueDate"}},{"kind":"Field","name":{"kind":"Name","value":"totalExclVat"}},{"kind":"Field","name":{"kind":"Name","value":"totalInclVat"}},{"kind":"Field","name":{"kind":"Name","value":"vat"}},{"kind":"Field","name":{"kind":"Name","value":"currency"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"ourReference"}},{"kind":"Field","name":{"kind":"Name","value":"yourReference"}},{"kind":"Field","name":{"kind":"Name","value":"syncedAt"}},{"kind":"Field","name":{"kind":"Name","value":"bookedAt"}},{"kind":"Field","name":{"kind":"Name","value":"rows"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"rowNumber"}},{"kind":"Field","name":{"kind":"Name","value":"articleNumber"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"quantity"}},{"kind":"Field","name":{"kind":"Name","value":"price"}},{"kind":"Field","name":{"kind":"Name","value":"vatPercent"}},{"kind":"Field","name":{"kind":"Name","value":"total"}}]}}]}}]}}]} as unknown as DocumentNode<GetInvoiceDetailQuery, GetInvoiceDetailQueryVariables>;
 export const GetFortnoxAuthUrlDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetFortnoxAuthUrl"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getFortnoxAuthUrl"}}]}}]} as unknown as DocumentNode<GetFortnoxAuthUrlQuery, GetFortnoxAuthUrlQueryVariables>;
 export const GetInvoiceRecipientAliasesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetInvoiceRecipientAliases"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"invoiceRecipientAliases"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"alias"}},{"kind":"Field","name":{"kind":"Name","value":"customerId"}},{"kind":"Field","name":{"kind":"Name","value":"customer"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"email"}}]}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}}]}}]}}]} as unknown as DocumentNode<GetInvoiceRecipientAliasesQuery, GetInvoiceRecipientAliasesQueryVariables>;
+export const GetUserActivityTimelineDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetUserActivityTimeline"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"userId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"fromDate"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"toDate"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"limit"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getUserActivityTimeline"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"userId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"userId"}}},{"kind":"Argument","name":{"kind":"Name","value":"fromDate"},"value":{"kind":"Variable","name":{"kind":"Name","value":"fromDate"}}},{"kind":"Argument","name":{"kind":"Name","value":"toDate"},"value":{"kind":"Variable","name":{"kind":"Name","value":"toDate"}}},{"kind":"Argument","name":{"kind":"Name","value":"limit"},"value":{"kind":"Variable","name":{"kind":"Name","value":"limit"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"kind"}},{"kind":"Field","name":{"kind":"Name","value":"occurredAt"}},{"kind":"Field","name":{"kind":"Name","value":"mailSent"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"subject"}},{"kind":"Field","name":{"kind":"Name","value":"messageId"}},{"kind":"Field","name":{"kind":"Name","value":"fromAddress"}}]}},{"kind":"Field","name":{"kind":"Name","value":"emailActivity"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"subject"}},{"kind":"Field","name":{"kind":"Name","value":"recipientEmail"}},{"kind":"Field","name":{"kind":"Name","value":"messageId"}}]}},{"kind":"Field","name":{"kind":"Name","value":"fortnoxVoucher"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"voucherSeries"}},{"kind":"Field","name":{"kind":"Name","value":"voucherNumber"}},{"kind":"Field","name":{"kind":"Name","value":"transactionDate"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"financialYearId"}}]}}]}}]}}]} as unknown as DocumentNode<GetUserActivityTimelineQuery, GetUserActivityTimelineQueryVariables>;

@@ -10,6 +10,7 @@ test.describe("Dashboard", () => {
 
   test("renders sidebar nav links", async ({ page }) => {
     const nav = page.locator(".dashboard-nav");
+    await expect(nav.getByRole("link", { name: "Tidslinje" })).toBeVisible();
     await expect(nav.getByRole("link", { name: "Bokföring" })).toBeVisible();
     await expect(nav.getByRole("link", { name: "Fakturor" })).toBeVisible();
     await expect(nav.getByRole("link", { name: "Faktura-alias" })).toBeVisible();

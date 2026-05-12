@@ -321,3 +321,22 @@ export const GET_INVOICE_RECIPIENT_ALIASES = gql`
     }
   }
 `;
+
+export const GET_USER_ACTIVITY_TIMELINE = gql`
+  query GetUserActivityTimeline(
+    $userId: ID!
+    $fromDate: String!
+    $toDate: String!
+    $limit: Int
+  ) {
+    getUserActivityTimeline(
+      userId: $userId
+      fromDate: $fromDate
+      toDate: $toDate
+      limit: $limit
+    ) {
+      kind
+      occurredAt
+    }
+  }
+`;
