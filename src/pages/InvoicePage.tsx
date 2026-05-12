@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation } from "@apollo/client/react";
 import { useNavigate, Link } from "@tanstack/react-router";
 import {
@@ -27,6 +27,7 @@ import {
   GetInvoicesDocument,
   GetInvoiceDetailDocument,
   GetFortnoxAuthUrlDocument,
+  GetAllCustomersDocument,
   type GetInvoicesQuery,
   type GetInvoicesQueryVariables,
   type GetInvoiceDetailQuery,
@@ -138,7 +139,13 @@ function FortnoxReconnectBanner() {
 
 // ── Detail panel ──────────────────────────────────────────────────────────────
 
-function InvoiceDetailPanel({ invoiceNumber }: { invoiceNumber: string }) {
+function InvoiceDetailPanel({
+  invoiceNumber,
+  customerNameMap,
+}: {
+  invoiceNumber: string;
+  customerNameMap: Map<string, string>;
+}) {
   const classes = useStyles();
   const { data, loading, error, refetch } = useQuery<
     GetInvoiceDetailQuery,
@@ -207,6 +214,14 @@ function InvoiceDetailPanel({ invoiceNumber }: { invoiceNumber: string }) {
           <span className="inv-detail-field__label">Kundnummer</span>
           <span className="inv-detail-field__value">{inv.customerNumber}</span>
         </div>
+        {customerNameMap.get(String(inv.customerNumber).trim()) && (
+          <div className="inv-detail-field">
+            <span className="inv-detail-field__label">Kundnamn</span>
+            <span className="inv-detail-field__value">
+              {customerNameMap.get(String(inv.customerNumber).trim())}
+            </span>
+          </div>
+        )}
         <div className="inv-detail-field">
           <span className="inv-detail-field__label">Status</span>
           <span className="inv-detail-field__value">
@@ -344,6 +359,17 @@ export default function InvoicePage() {
     },
   });
 
+  const { data: customersData } = useQuery(GetAllCustomersDocument);
+  const customerNameMap = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const c of customersData?.getAllCustomers ?? []) {
+      if (c.fortnoxCustomerNumber && c.name) {
+        map.set(String(c.fortnoxCustomerNumber).trim(), c.name);
+      }
+    }
+    return map;
+  }, [customersData]);
+
   const invoices = data?.getInvoices ?? [];
   const hasPrevPage = page > 1;
   const hasNextPage = invoices.length === PAGE_SIZE;
@@ -453,7 +479,7 @@ export default function InvoicePage() {
           <section className="dashboard-section">
             <div className="inv-table-head">
               <span>Faktura #</span>
-              <span>Kund #</span>
+              <span>Kund</span>
               <span>Datum</span>
               <span>Förfaller</span>
               <span style={{ textAlign: "right" }}>Totalt inkl. moms</span>
@@ -484,7 +510,11 @@ export default function InvoicePage() {
                       onClick={() => toggleInvoice(inv.invoiceNumber)}
                     >
                       <span className="inv-cell-num">{inv.invoiceNumber}</span>
-                      <span>{inv.customerNumber}</span>
+                      <span>
+                        {customerNameMap.get(String(inv.customerNumber).trim())
+                          ? `${customerNameMap.get(String(inv.customerNumber).trim())} (#${inv.customerNumber})`
+                          : inv.customerNumber}
+                      </span>
                       <span>{fmtDate(inv.invoiceDate)}</span>
                       <span>{fmtDate(inv.dueDate)}</span>
                       <span className="inv-cell-amount">
@@ -515,7 +545,10 @@ export default function InvoicePage() {
                       </button>
                     </div>
                     {isExpanded && (
-                      <InvoiceDetailPanel invoiceNumber={inv.invoiceNumber} />
+                      <InvoiceDetailPanel
+                        invoiceNumber={inv.invoiceNumber}
+                        customerNameMap={customerNameMap}
+                      />
                     )}
                   </div>
                 );

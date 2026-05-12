@@ -92,6 +92,8 @@ type FortnoxCustomerResolution = {
   customer?: CustomerRow;
   /** Kundnummer fanns i payload men ingen rad i listan hade samma #nr */
   unmatchedFortnoxNumber?: string;
+  /** Namn direkt från Fortnox-payloaden (fallback när ingen intern match) */
+  fortnoxName?: string;
 };
 
 /**
@@ -152,12 +154,24 @@ function resolveFortnoxEventCustomer(
     );
     if (nested.customer) return nested;
     if (nested.unmatchedFortnoxNumber)
-      return { unmatchedFortnoxNumber: nested.unmatchedFortnoxNumber };
+      return {
+        unmatchedFortnoxNumber: nested.unmatchedFortnoxNumber,
+        fortnoxName: nested.fortnoxName,
+      };
   }
 
-  if (unmatchedNr) return { unmatchedFortnoxNumber: unmatchedNr };
+  // Extract the name directly from the Fortnox payload as a fallback.
+  const extractedName = (() => {
+    for (const key of ["Name", "name", "CustomerName", "customer_name", "customerName"]) {
+      const v = o[key];
+      if (typeof v === "string" && v.trim()) return v.trim();
+    }
+    return undefined;
+  })();
 
-  return {};
+  if (unmatchedNr) return { unmatchedFortnoxNumber: unmatchedNr, fortnoxName: extractedName };
+
+  return extractedName ? { fortnoxName: extractedName } : {};
 }
 
 const EMAIL_EVENT_TYPE_OUTBOUND = "Utgående e-post";
@@ -321,12 +335,18 @@ function buildFortnoxEvents(
     resolution: FortnoxCustomerResolution,
     eventTypeLabel: string,
   ) => {
-    const { customer, unmatchedFortnoxNumber } = resolution;
+    const { customer, unmatchedFortnoxNumber, fortnoxName } = resolution;
     let custLabel: string;
     let cid: string | undefined;
     if (customer) {
       custLabel = formatCustomerLine(customer);
       cid = customer.id;
+    } else if (fortnoxName && unmatchedFortnoxNumber) {
+      custLabel = `${fortnoxName} (#${unmatchedFortnoxNumber})`;
+      cid = undefined;
+    } else if (fortnoxName) {
+      custLabel = fortnoxName;
+      cid = undefined;
     } else if (unmatchedFortnoxNumber) {
       custLabel = `#${unmatchedFortnoxNumber} (ej i kundlistan)`;
       cid = undefined;
