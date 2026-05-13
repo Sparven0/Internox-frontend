@@ -26,10 +26,10 @@ import {
   GetVouchersDocument,
   GetOnboardingStatusDocument,
   LogoutDocument,
+  GetFortnoxAuthUrlDocument,
 } from "../__generated__/graphql";
 import { useAuth } from "../context/useAuth";
 import { setAuthToken } from "../apolloClient";
-import { fortnoxAuthUrl } from "../backendOrigin";
 import VoucherDetailPanel from "../components/VoucherDetailPanel";
 import "../DashboardPage.css";
 import "../BookkeepingPage.css";
@@ -118,6 +118,7 @@ export default function BookkeepingPage() {
     error: yearsError,
   } = useQuery(GetFinancialYearsDocument);
   const { data: onboardingData } = useQuery(GetOnboardingStatusDocument);
+  const { data: fortnoxAuthData } = useQuery(GetFortnoxAuthUrlDocument);
 
   /* ── Derived data ── */
   const years = yearsData?.getFinancialYears ?? [];
@@ -171,7 +172,8 @@ export default function BookkeepingPage() {
   };
 
   const handleOpenFortnoxConnect = () => {
-    window.open(fortnoxAuthUrl(), "_blank", "noopener,noreferrer");
+    const url = fortnoxAuthData?.getFortnoxAuthUrl;
+    if (url) window.open(url, "_blank", "noopener,noreferrer");
   };
 
   const showFortnoxConnect =

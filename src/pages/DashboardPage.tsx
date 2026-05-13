@@ -30,6 +30,7 @@ import {
   AssignCustomerToEmployeeDocument,
   GetCustomersByEmployeeDocument,
   GetInvoiceRecipientAliasesDocument,
+  GetFortnoxAuthUrlDocument,
 } from "../__generated__/graphql";
 import {
   customerIdsByNormalizedEmail,
@@ -40,7 +41,6 @@ import { buildAliasCustomerIdMap } from "../lib/resolveRecipientToCustomers";
 import { buildDashboardEventRows, type DashboardEventRow } from "../lib/buildDashboardEventLog";
 import { useAuth } from "../context/useAuth";
 import { setAuthToken } from "../apolloClient";
-import { fortnoxAuthUrl } from "../backendOrigin";
 import EmployeeCustomerPanel from "../components/EmployeeCustomerPanel";
 import DashboardEventLog from "../components/DashboardEventLog";
 import "../DashboardPage.css";
@@ -78,6 +78,7 @@ export default function DashboardPage() {
     GetAllCustomersDocument,
   );
   const { data: onboardingData } = useQuery(GetOnboardingStatusDocument);
+  const { data: fortnoxAuthData } = useQuery(GetFortnoxAuthUrlDocument);
 
   const company = pageData?.getInitPageData?.company;
   const users = useMemo(
@@ -304,7 +305,8 @@ export default function DashboardPage() {
   };
 
   const handleOpenFortnoxConnect = () => {
-    window.open(fortnoxAuthUrl(), "_blank", "noopener,noreferrer");
+    const url = fortnoxAuthData?.getFortnoxAuthUrl;
+    if (url) window.open(url, "_blank", "noopener,noreferrer");
   };
 
   const showFortnoxConnect =

@@ -361,6 +361,26 @@ export const GET_USER_ACTIVITY_TIMELINE = gql`
     ) {
       kind
       occurredAt
+      mailSent {
+        id
+        subject
+        messageId
+        fromAddress
+      }
+      emailActivity {
+        id
+        subject
+        recipientEmail
+        messageId
+      }
+      fortnoxInvoice {
+        id
+        invoiceNumber
+        customerNumber
+        totalInclVat
+        currency
+        status
+      }
     }
   }
 `;

@@ -24,6 +24,7 @@ import {
   GetInitPageDataDocument,
   GetOnboardingStatusDocument,
   LogoutDocument,
+  GetFortnoxAuthUrlDocument,
 } from "../__generated__/graphql";
 import { GET_USER_ACTIVITY_TIMELINE } from "../GraphQL/queries";
 import type {
@@ -33,7 +34,6 @@ import type {
 } from "../types/activityTimeline";
 import { useAuth } from "../context/useAuth";
 import { setAuthToken } from "../apolloClient";
-import { fortnoxAuthUrl } from "../backendOrigin";
 import "../DashboardPage.css";
 import "../ActivityTimelinePage.css";
 
@@ -55,20 +55,25 @@ function fmtOccurredAt(raw: string): string {
   const d = new Date(raw);
   if (isNaN(d.getTime())) return raw;
   return d.toLocaleString("sv-SE", {
-    dateStyle: "medium",
-    timeStyle: "short",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
   });
 }
+
 
 /** UI buckets per product copy: mail-like vs Fortnox. */
 function timelineKindBucket(
   kind: TimelineEventKind,
 ): "mail" | "fortnox" {
-  if (kind === "FORTNOX_VOUCHER") return "fortnox";
+  if (kind === "FORTNOX_VOUCHER" || kind === "FORTNOX_INVOICE") return "fortnox";
   return "mail";
 }
 
 function timelineTypeLabel(kind: TimelineEventKind): string {
+  if (kind === "FORTNOX_INVOICE") return "Faktura";
   if (kind === "FORTNOX_VOUCHER") return "Fortnox";
   if (kind === "MAIL") return "Mejl";
   return "E-post";
@@ -85,6 +90,7 @@ export default function ActivityTimelinePage() {
     GetInitPageDataDocument,
   );
   const { data: onboardingData } = useQuery(GetOnboardingStatusDocument);
+  const { data: fortnoxAuthData } = useQuery(GetFortnoxAuthUrlDocument);
 
   const company = pageData?.getInitPageData?.company;
   const sortedEmployees = useMemo(() => {
@@ -113,6 +119,7 @@ export default function ActivityTimelinePage() {
   >(GET_USER_ACTIVITY_TIMELINE, { fetchPolicy: "network-only" });
 
   const events = data?.getUserActivityTimeline ?? [];
+  console.log('[Timeline] events:', JSON.stringify(events, null, 2));
 
   const limitParsed = /^[0-9]+$/.test(limitStr.trim())
     ? Math.min(Number(limitStr.trim()), 500)
@@ -142,7 +149,8 @@ export default function ActivityTimelinePage() {
   };
 
   const handleOpenFortnoxConnect = () => {
-    window.open(fortnoxAuthUrl(), "_blank", "noopener,noreferrer");
+    const url = fortnoxAuthData?.getFortnoxAuthUrl;
+    if (url) window.open(url, "_blank", "noopener,noreferrer");
   };
 
   const showFortnoxConnect =
@@ -346,6 +354,9 @@ export default function ActivityTimelinePage() {
             >
               {events.map((ev, idx) => {
                 const bucket = timelineKindBucket(ev.kind);
+                const inv = ev.kind === "FORTNOX_INVOICE" ? ev.fortnoxInvoice : null;
+                const mail = ev.kind === "MAIL" ? ev.mailSent : null;
+                const activity = ev.kind === "EMAIL_ACTIVITY" ? ev.emailActivity : null;
                 return (
                   <div
                     key={`${ev.kind}-${ev.occurredAt}-${idx}`}
@@ -367,6 +378,21 @@ export default function ActivityTimelinePage() {
                       >
                         {timelineTypeLabel(ev.kind)}
                       </span>
+                      {inv && (
+                        <span className="timeline-page__detail">
+                          #{inv.invoiceNumber} · {inv.customerNumber}
+                          {inv.totalInclVat != null && (
+                            <> · {inv.totalInclVat.toLocaleString("sv-SE")} {inv.currency}</>
+                          )}
+                          {" "}· <span className={`timeline-page__status timeline-page__status--${inv.status}`}>{inv.status}</span>
+                        </span>
+                      )}
+                      {mail && mail.subject && (
+                        <span className="timeline-page__detail">{mail.subject}</span>
+                      )}
+                      {activity && activity.subject && (
+                        <span className="timeline-page__detail">{activity.subject}</span>
+                      )}
                     </div>
                   </div>
                 );

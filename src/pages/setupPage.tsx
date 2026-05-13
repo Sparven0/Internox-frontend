@@ -10,11 +10,11 @@ import {
   tokens,
 } from "@fluentui/react-components";
 import { ArrowRight20Regular, Checkmark16Regular, Add20Regular } from "@fluentui/react-icons";
-import { useMutation } from "@apollo/client/react";
+import { useMutation, useQuery } from "@apollo/client/react";
 import { useNavigate } from "@tanstack/react-router";
 import { internoxTheme } from "../theme";
 import { ADD_IMAP_CREDENTIALS, CREATE_USER } from "../GraphQL/mutations";
-import { fortnoxAuthUrl } from "../backendOrigin";
+import { GetFortnoxAuthUrlDocument } from "../__generated__/graphql";
 import { getAuthToken } from "../apolloClient";
 import "../OnboardingPage.css";
 
@@ -112,9 +112,11 @@ export default function OnboardingPage() {
 
   const [createUser]          = useMutation(CREATE_USER);
   const [addImapCredentials]  = useMutation(ADD_IMAP_CREDENTIALS);
+  const { data: fortnoxAuthData } = useQuery(GetFortnoxAuthUrlDocument);
 
   const handleFortnoxConnect = () => {
-    window.open(fortnoxAuthUrl(), "_blank");
+    const url = fortnoxAuthData?.getFortnoxAuthUrl;
+    if (url) window.open(url, "_blank");
   };
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {

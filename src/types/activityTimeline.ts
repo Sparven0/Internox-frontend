@@ -1,16 +1,38 @@
-/**
- * Summary shape returned when querying only kind + occurredAt on timeline events.
- * Run graphql-codegen against schema for full TimelineEvent typings when backend is available.
- */
-
 export type TimelineEventKind =
   | "MAIL"
   | "EMAIL_ACTIVITY"
-  | "FORTNOX_VOUCHER";
+  | "FORTNOX_VOUCHER"
+  | "FORTNOX_INVOICE";
+
+export type TimelineMailSent = {
+  id: string;
+  subject?: string | null;
+  messageId: string;
+  fromAddress: string;
+};
+
+export type TimelineEmailActivity = {
+  id: string;
+  subject?: string | null;
+  recipientEmail: string;
+  messageId?: string | null;
+};
+
+export type TimelineFortnoxInvoice = {
+  id: string;
+  invoiceNumber: string;
+  customerNumber: string;
+  totalInclVat?: number | null;
+  currency: string;
+  status: string;
+};
 
 export type TimelineEventSummary = {
   kind: TimelineEventKind;
   occurredAt: string;
+  mailSent?: TimelineMailSent | null;
+  emailActivity?: TimelineEmailActivity | null;
+  fortnoxInvoice?: TimelineFortnoxInvoice | null;
 };
 
 export type GetUserActivityTimelineQuery = {
