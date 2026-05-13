@@ -253,3 +253,64 @@
   font-size: 13px;
   color: var(--colorNeutralForeground2, #555);
 }
+
+/* ── User sections ── */
+.eml-user-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.eml-user-section {
+  border: 1px solid var(--colorNeutralStroke1, #e0e0e0);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.eml-user-section__header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--colorNeutralBackground2, #fafafa);
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--colorNeutralForeground1, #1a1a1a);
+  text-align: left;
+  transition: background 0.15s;
+}
+
+.eml-user-section__header:hover {
+  background: var(--colorNeutralBackground3, #f0f0f0);
+}
+
+.eml-user-section--open .eml-user-section__header {
+  border-bottom: 1px solid var(--colorNeutralStroke1, #e0e0e0);
+}
+
+.eml-user-section__email {
+  flex: 1;
+}
+
+.eml-user-section__count {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--colorNeutralForeground3, #777);
+}
+
+.eml-user-section__chevron {
+  display: flex;
+  align-items: center;
+  color: var(--colorNeutralForeground3, #777);
+}
+
+.eml-user-section__body {
+  padding: 8px 0;
+}
+
+.eml-user-section__spinner {
+  padding: 16px 24px;
+}

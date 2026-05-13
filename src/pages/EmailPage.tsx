@@ -15,6 +15,7 @@ import {
   History20Regular,
   LinkAdd20Regular,
   Mail20Regular,
+  Person20Regular,
   Receipt20Regular,
   Search20Regular,
   SignOut20Regular,
@@ -23,6 +24,7 @@ import {
 import { internoxTheme } from "../theme";
 import {
   GetEmailsByUserDocument,
+  GetUsersByCompanyIdDocument,
   LogoutDocument,
   MeDocument,
 } from "../__generated__/graphql";
@@ -30,8 +32,6 @@ import { useAuth } from "../context/useAuth";
 import { setAuthToken } from "../apolloClient";
 import "../DashboardPage.css";
 import "../EmailPage.css";
-
-const EMAIL_PAGE_SIZE = 25;
 
 const useStyles = makeStyles({
   spinner: { color: tokens.colorBrandForeground1 },
@@ -67,16 +67,187 @@ function parseAddresses(value: unknown): string {
 
 type DirectionFilter = "all" | "inbound" | "outbound";
 
+/* ── Single email row ── */
+interface EmailRowProps {
+  email: {
+    id: string;
+    subject?: string | null;
+    fromAddress: string;
+    fromName?: string | null;
+    toAddresses: unknown;
+    ccAddresses: unknown;
+    direction: string;
+    createdAt: string;
+    sentAt?: string | null;
+    mailbox?: string | null;
+    bodyHtml?: string | null;
+    bodyText?: string | null;
+  };
+  expanded: boolean;
+  onToggle: (id: string) => void;
+}
+
+function EmailRow({ email, expanded, onToggle }: EmailRowProps) {
+  const date = fmtDate(email.sentAt ?? email.createdAt);
+  return (
+    <div className={`eml-row${expanded ? " eml-row--expanded" : ""}`}>
+      <button
+        type="button"
+        className="eml-row__header"
+        onClick={() => onToggle(email.id)}
+      >
+        <span className={`eml-badge eml-badge--${email.direction}`}>
+          {email.direction === "inbound" ? "In" : "Ut"}
+        </span>
+        <span className="eml-row__subject">{email.subject ?? "(inget ämne)"}</span>
+        <span className="eml-row__from">
+          {email.fromName ? `${email.fromName} <${email.fromAddress}>` : email.fromAddress}
+        </span>
+        <span className="eml-row__date">{date}</span>
+        <span className="eml-row__expand-icon">
+          {expanded ? <ChevronUp20Regular /> : <ChevronDown20Regular />}
+        </span>
+      </button>
+
+      {expanded && (
+        <div className="eml-row__detail">
+          <div className="eml-meta">
+            <div className="eml-meta__row">
+              <span className="eml-meta__label">Från</span>
+              <span className="eml-meta__value">
+                {email.fromName ? `${email.fromName} <${email.fromAddress}>` : email.fromAddress}
+              </span>
+            </div>
+            <div className="eml-meta__row">
+              <span className="eml-meta__label">Till</span>
+              <span className="eml-meta__value">{parseAddresses(email.toAddresses)}</span>
+            </div>
+            {parseAddresses(email.ccAddresses) !== "—" && (
+              <div className="eml-meta__row">
+                <span className="eml-meta__label">CC</span>
+                <span className="eml-meta__value">{parseAddresses(email.ccAddresses)}</span>
+              </div>
+            )}
+            <div className="eml-meta__row">
+              <span className="eml-meta__label">Datum</span>
+              <span className="eml-meta__value">{date}</span>
+            </div>
+            {email.mailbox && (
+              <div className="eml-meta__row">
+                <span className="eml-meta__label">Brevlåda</span>
+                <span className="eml-meta__value">{email.mailbox}</span>
+              </div>
+            )}
+          </div>
+          <div className="eml-body">
+            {email.bodyHtml ? (
+              <iframe
+                className="eml-body__iframe"
+                srcDoc={email.bodyHtml}
+                sandbox=""
+                title={`E-post: ${email.subject ?? email.id}`}
+              />
+            ) : email.bodyText ? (
+              <pre className="eml-body__text">{email.bodyText}</pre>
+            ) : (
+              <p className="eml-body__empty">Inget innehåll.</p>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── Per-user collapsible section ── */
+interface UserEmailSectionProps {
+  userId: string;
+  userEmail: string;
+  directionFilter: DirectionFilter;
+  searchQuery: string;
+}
+
+function UserEmailSection({
+  userId,
+  userEmail,
+  directionFilter,
+  searchQuery,
+}: UserEmailSectionProps) {
+  const styles = useStyles();
+  const [isOpen, setIsOpen] = useState(false);
+  const [expandedEmailId, setExpandedEmailId] = useState<string | null>(null);
+
+  const { data, loading, error } = useQuery(GetEmailsByUserDocument, {
+    variables: { userId },
+    skip: !isOpen,
+  });
+
+  const filtered = useMemo(() => {
+    const emailList = data?.getEmailsByUser ?? [];
+    const q = searchQuery.trim().toLowerCase();
+    return emailList.filter((e) => {
+      if (directionFilter !== "all" && e.direction !== directionFilter) return false;
+      if (q) {
+        const subject = (e.subject ?? "").toLowerCase();
+        const from = `${e.fromAddress} ${e.fromName ?? ""}`.toLowerCase();
+        if (!subject.includes(q) && !from.includes(q)) return false;
+      }
+      return true;
+    });
+  }, [data, directionFilter, searchQuery]);
+
+  return (
+    <div className={`eml-user-section${isOpen ? " eml-user-section--open" : ""}`}>
+      <button
+        type="button"
+        className="eml-user-section__header"
+        onClick={() => setIsOpen((v) => !v)}
+      >
+        <Person20Regular />
+        <span className="eml-user-section__email">{userEmail}</span>
+        {isOpen && data && (
+          <span className="eml-user-section__count">{filtered.length} e-post</span>
+        )}
+        <span className="eml-user-section__chevron">
+          {isOpen ? <ChevronUp20Regular /> : <ChevronDown20Regular />}
+        </span>
+      </button>
+
+      {isOpen && (
+        <div className="eml-user-section__body">
+          {loading ? (
+            <div className="eml-user-section__spinner">
+              <Spinner className={styles.spinner} size="tiny" label="Laddar…" />
+            </div>
+          ) : error ? (
+            <div className="eml-error">Kunde inte ladda e-post: {error.message}</div>
+          ) : filtered.length === 0 ? (
+            <div className="eml-empty">Inga e-postmeddelanden hittades.</div>
+          ) : (
+            <div className="eml-list">
+              {filtered.map((email) => (
+                <EmailRow
+                  key={email.id}
+                  email={email}
+                  expanded={expandedEmailId === email.id}
+                  onToggle={(id) => setExpandedEmailId((prev) => (prev === id ? null : id))}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function EmailPage() {
   const styles = useStyles();
   const navigate = useNavigate();
   const { setToken } = useAuth();
 
-  const [directionFilter, setDirectionFilter] =
-    useState<DirectionFilter>("all");
+  const [directionFilter, setDirectionFilter] = useState<DirectionFilter>("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
 
   const [logout] = useMutation(LogoutDocument, {
     onCompleted: () => {
@@ -87,48 +258,18 @@ export default function EmailPage() {
   });
 
   const { data: meData } = useQuery(MeDocument);
-  const userId = meData?.me?.id;
+  const companyId = meData?.me?.companyId;
 
-  const { data, loading, error } = useQuery(GetEmailsByUserDocument, {
-    variables: { userId: userId! },
-    skip: !userId,
+  const {
+    data: usersData,
+    loading: usersLoading,
+    error: usersError,
+  } = useQuery(GetUsersByCompanyIdDocument, {
+    variables: { companyId: companyId! },
+    skip: !companyId,
   });
 
-  const filtered = useMemo(() => {
-    const emailList = data?.getEmailsByUser ?? [];
-    const q = searchQuery.trim().toLowerCase();
-    return emailList.filter((e) => {
-      if (directionFilter !== "all" && e.direction !== directionFilter)
-        return false;
-      if (q) {
-        const subject = (e.subject ?? "").toLowerCase();
-        const from = `${e.fromAddress} ${e.fromName ?? ""}`.toLowerCase();
-        if (!subject.includes(q) && !from.includes(q)) return false;
-      }
-      return true;
-    });
-  }, [data, directionFilter, searchQuery]);
-
-  const totalPages = Math.max(1, Math.ceil(filtered.length / EMAIL_PAGE_SIZE));
-  const safePage = Math.min(currentPage, totalPages);
-  const pageEmails = filtered.slice(
-    (safePage - 1) * EMAIL_PAGE_SIZE,
-    safePage * EMAIL_PAGE_SIZE,
-  );
-
-  function handleDirectionFilter(dir: DirectionFilter) {
-    setDirectionFilter(dir);
-    setCurrentPage(1);
-  }
-
-  function handleSearch(e: React.ChangeEvent<HTMLInputElement>) {
-    setSearchQuery(e.target.value);
-    setCurrentPage(1);
-  }
-
-  function toggleExpand(id: string) {
-    setExpandedId((prev) => (prev === id ? null : id));
-  }
+  const users = usersData?.getUsersByCompanyId ?? [];
 
   return (
     <FluentProvider theme={internoxTheme}>
@@ -183,187 +324,53 @@ export default function EmailPage() {
           {/* ── Filters ── */}
           <div className="eml-filters">
             <div className="eml-direction-tabs">
-              {(["all", "inbound", "outbound"] as DirectionFilter[]).map(
-                (dir) => (
-                  <button
-                    key={dir}
-                    type="button"
-                    className={`eml-tab${directionFilter === dir ? " eml-tab--active" : ""}`}
-                    onClick={() => handleDirectionFilter(dir)}
-                  >
-                    {dir === "all"
-                      ? "Alla"
-                      : dir === "inbound"
-                        ? "Inkommande"
-                        : "Utgående"}
-                  </button>
-                ),
-              )}
+              {(["all", "inbound", "outbound"] as DirectionFilter[]).map((dir) => (
+                <button
+                  key={dir}
+                  type="button"
+                  className={`eml-tab${directionFilter === dir ? " eml-tab--active" : ""}`}
+                  onClick={() => setDirectionFilter(dir)}
+                >
+                  {dir === "all" ? "Alla" : dir === "inbound" ? "Inkommande" : "Utgående"}
+                </button>
+              ))}
             </div>
             <div className="eml-search">
               <Input
                 contentBefore={<Search20Regular />}
                 placeholder="Sök ämne eller avsändare…"
                 value={searchQuery}
-                onChange={handleSearch}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 style={{ width: "280px" }}
               />
             </div>
           </div>
 
-          {/* ── Content ── */}
-          {loading && !data ? (
+          {/* ── User sections ── */}
+          {usersLoading && !usersData ? (
             <div className="dashboard-spinner-wrap">
-              <Spinner className={styles.spinner} label="Laddar e-post…" />
+              <Spinner className={styles.spinner} label="Laddar användare…" />
             </div>
-          ) : error ? (
+          ) : usersError ? (
             <div className="eml-error">
-              Kunde inte ladda e-post: {error.message}
+              Kunde inte ladda användare: {usersError.message}
             </div>
+          ) : users.length === 0 ? (
+            <div className="eml-empty">Inga användare hittades.</div>
           ) : (
-            <>
-              <div className="eml-count">
-                {filtered.length} e-post
-                {searchQuery || directionFilter !== "all" ? " (filtrerat)" : ""}
-              </div>
-
-              <div className="eml-list">
-                {pageEmails.length === 0 ? (
-                  <div className="eml-empty">
-                    Inga e-postmeddelanden hittades.
-                  </div>
-                ) : (
-                  pageEmails.map((email) => {
-                    const isExpanded = expandedId === email.id;
-                    const date = fmtDate(email.sentAt ?? email.createdAt);
-
-                    return (
-                      <div
-                        key={email.id}
-                        className={`eml-row${isExpanded ? " eml-row--expanded" : ""}`}
-                      >
-                        <button
-                          type="button"
-                          className="eml-row__header"
-                          onClick={() => toggleExpand(email.id)}
-                        >
-                          <span
-                            className={`eml-badge eml-badge--${email.direction}`}
-                          >
-                            {email.direction === "inbound" ? "In" : "Ut"}
-                          </span>
-                          <span className="eml-row__subject">
-                            {email.subject ?? "(inget ämne)"}
-                          </span>
-                          <span className="eml-row__from">
-                            {email.fromName
-                              ? `${email.fromName} <${email.fromAddress}>`
-                              : email.fromAddress}
-                          </span>
-                          <span className="eml-row__date">{date}</span>
-                          <span className="eml-row__expand-icon">
-                            {isExpanded ? (
-                              <ChevronUp20Regular />
-                            ) : (
-                              <ChevronDown20Regular />
-                            )}
-                          </span>
-                        </button>
-
-                        {isExpanded && (
-                          <div className="eml-row__detail">
-                            <div className="eml-meta">
-                              <div className="eml-meta__row">
-                                <span className="eml-meta__label">Från</span>
-                                <span className="eml-meta__value">
-                                  {email.fromName
-                                    ? `${email.fromName} <${email.fromAddress}>`
-                                    : email.fromAddress}
-                                </span>
-                              </div>
-                              <div className="eml-meta__row">
-                                <span className="eml-meta__label">Till</span>
-                                <span className="eml-meta__value">
-                                  {parseAddresses(email.toAddresses)}
-                                </span>
-                              </div>
-                              {parseAddresses(email.ccAddresses) !== "—" && (
-                                <div className="eml-meta__row">
-                                  <span className="eml-meta__label">CC</span>
-                                  <span className="eml-meta__value">
-                                    {parseAddresses(email.ccAddresses)}
-                                  </span>
-                                </div>
-                              )}
-                              <div className="eml-meta__row">
-                                <span className="eml-meta__label">Datum</span>
-                                <span className="eml-meta__value">{date}</span>
-                              </div>
-                              {email.mailbox && (
-                                <div className="eml-meta__row">
-                                  <span className="eml-meta__label">
-                                    Brevlåda
-                                  </span>
-                                  <span className="eml-meta__value">
-                                    {email.mailbox}
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-
-                            <div className="eml-body">
-                              {email.bodyHtml ? (
-                                <iframe
-                                  className="eml-body__iframe"
-                                  srcDoc={email.bodyHtml}
-                                  sandbox=""
-                                  title={`E-post: ${email.subject ?? email.id}`}
-                                />
-                              ) : email.bodyText ? (
-                                <pre className="eml-body__text">
-                                  {email.bodyText}
-                                </pre>
-                              ) : (
-                                <p className="eml-body__empty">
-                                  Inget innehåll.
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-
-              {/* ── Pagination ── */}
-              {totalPages > 1 && (
-                <div className="eml-pagination">
-                  <button
-                    type="button"
-                    className="eml-pagination__btn"
-                    disabled={safePage <= 1}
-                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  >
-                    Föregående
-                  </button>
-                  <span className="eml-pagination__info">
-                    Sida {safePage} av {totalPages}
-                  </span>
-                  <button
-                    type="button"
-                    className="eml-pagination__btn"
-                    disabled={safePage >= totalPages}
-                    onClick={() =>
-                      setCurrentPage((p) => Math.min(totalPages, p + 1))
-                    }
-                  >
-                    Nästa
-                  </button>
-                </div>
+            <div className="eml-user-list">
+              {users.map((user) =>
+                user ? (
+                  <UserEmailSection
+                    key={user.id}
+                    userId={user.id}
+                    userEmail={user.email}
+                    directionFilter={directionFilter}
+                    searchQuery={searchQuery}
+                  />
+                ) : null,
               )}
-            </>
+            </div>
           )}
         </main>
       </div>
