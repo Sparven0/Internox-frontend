@@ -27,6 +27,7 @@ import {
   LinkAdd20Regular,
   Delete20Regular,
   ArrowLeft20Regular,
+  Mail20Regular,
 } from "@fluentui/react-icons";
 import { internoxTheme } from "../theme";
 import {
@@ -361,6 +362,9 @@ export default function AliasManagerPage() {
                 className="dashboard-nav__item dashboard-nav__item--active"
               >
                 <LinkAdd20Regular /> Faktura-alias
+              </Link>
+              <Link to="/emails" className="dashboard-nav__item">
+                <Mail20Regular /> E-post
               </Link>
             </nav>
           </div>

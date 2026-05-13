@@ -1,0 +1,255 @@
+/* ── Filter bar ── */
+.eml-filters {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.eml-direction-tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--colorNeutralBackground3, #f0f0f0);
+  border-radius: 8px;
+  padding: 3px;
+}
+
+.eml-tab {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--colorNeutralForeground2, #444);
+  transition: background 0.15s, color 0.15s;
+}
+
+.eml-tab:hover {
+  background: var(--colorNeutralBackground1Hover, #e0e0e0);
+}
+
+.eml-tab--active {
+  background: #fff;
+  color: var(--colorBrandForeground1, #0f6cbd);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.eml-search {
+  margin-left: auto;
+}
+
+/* ── Count ── */
+.eml-count {
+  font-size: 13px;
+  color: var(--colorNeutralForeground3, #888);
+  margin-bottom: 10px;
+}
+
+/* ── Email list ── */
+.eml-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.eml-empty {
+  text-align: center;
+  padding: 48px 0;
+  color: var(--colorNeutralForeground3, #999);
+  font-size: 14px;
+}
+
+.eml-error {
+  padding: 16px;
+  color: var(--colorPaletteRedForeground1, #d13438);
+  font-size: 14px;
+}
+
+/* ── Email row ── */
+.eml-row {
+  border: 1px solid var(--colorNeutralStroke1, #e0e0e0);
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+  transition: box-shadow 0.15s;
+}
+
+.eml-row:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.eml-row--expanded {
+  border-color: var(--colorBrandStroke1, #0f6cbd);
+  box-shadow: 0 2px 10px rgba(15, 108, 189, 0.12);
+}
+
+.eml-row__header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 16px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-size: 14px;
+  color: inherit;
+}
+
+.eml-row__header:hover {
+  background: var(--colorNeutralBackground1Hover, #f7f7f7);
+}
+
+/* ── Direction badge ── */
+.eml-badge {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.eml-badge--inbound {
+  background: #e6f2fb;
+  color: #0f6cbd;
+}
+
+.eml-badge--outbound {
+  background: #f0f9ee;
+  color: #107c10;
+}
+
+.eml-row__subject {
+  flex: 1 1 auto;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.eml-row__from {
+  flex: 0 1 220px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--colorNeutralForeground2, #555);
+  font-size: 13px;
+  min-width: 0;
+}
+
+.eml-row__date {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: var(--colorNeutralForeground3, #999);
+  white-space: nowrap;
+}
+
+.eml-row__expand-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  color: var(--colorNeutralForeground3, #999);
+}
+
+/* ── Expanded detail ── */
+.eml-row__detail {
+  border-top: 1px solid var(--colorNeutralStroke1, #e0e0e0);
+  padding: 16px;
+}
+
+.eml-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.eml-meta__row {
+  display: flex;
+  gap: 12px;
+  font-size: 13px;
+}
+
+.eml-meta__label {
+  flex-shrink: 0;
+  width: 72px;
+  font-weight: 600;
+  color: var(--colorNeutralForeground2, #555);
+}
+
+.eml-meta__value {
+  color: var(--colorNeutralForeground1, #242424);
+  word-break: break-word;
+}
+
+/* ── Email body ── */
+.eml-body__iframe {
+  width: 100%;
+  min-height: 300px;
+  max-height: 600px;
+  border: 1px solid var(--colorNeutralStroke1, #e0e0e0);
+  border-radius: 6px;
+  background: #fff;
+}
+
+.eml-body__text {
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 13px;
+  font-family: inherit;
+  margin: 0;
+  padding: 12px;
+  background: var(--colorNeutralBackground2, #fafafa);
+  border: 1px solid var(--colorNeutralStroke1, #e0e0e0);
+  border-radius: 6px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.eml-body__empty {
+  font-size: 13px;
+  color: var(--colorNeutralForeground3, #999);
+  margin: 0;
+}
+
+/* ── Pagination ── */
+.eml-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 20px;
+  padding-bottom: 16px;
+}
+
+.eml-pagination__btn {
+  background: transparent;
+  border: 1px solid var(--colorNeutralStroke1, #d0d0d0);
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--colorNeutralForeground1, #242424);
+  transition: background 0.15s;
+}
+
+.eml-pagination__btn:hover:not(:disabled) {
+  background: var(--colorNeutralBackground1Hover, #f0f0f0);
+}
+
+.eml-pagination__btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.eml-pagination__info {
+  font-size: 13px;
+  color: var(--colorNeutralForeground2, #555);
+}

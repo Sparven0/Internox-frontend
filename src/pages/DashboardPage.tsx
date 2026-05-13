@@ -335,12 +335,9 @@ export default function DashboardPage() {
               >
                 <PeopleCommunity20Regular /> Anställda
               </a>
-              <a href="#customers" className="dashboard-nav__item">
-                <Building20Regular /> Kunder
-              </a>
-              <a href="#emails" className="dashboard-nav__item">
+              <Link to="/emails" className="dashboard-nav__item">
                 <Mail20Regular /> E-post
-              </a>
+              </Link>
               <Link to="/activity" className="dashboard-nav__item">
                 <History20Regular /> Tidslinje
               </Link>
