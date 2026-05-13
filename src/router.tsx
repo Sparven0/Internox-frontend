@@ -126,6 +126,15 @@ const activityTimelineRoute = createRoute({
   errorComponent: PageError,
 });
 
+const emailRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/emails",
+  beforeLoad: requireAuth,
+  component: lazy(() => import("./pages/EmailPage")),
+  pendingComponent: PagePending,
+  errorComponent: PageError,
+});
+
 const routeTree = rootRoute.addChildren([
   loginRoute,
   dashboardRoute,
@@ -136,6 +145,7 @@ const routeTree = rootRoute.addChildren([
   invoicesRoute,
   aliasManagerRoute,
   activityTimelineRoute,
+  emailRoute,
 ]);
 
 export const router = createRouter({ routeTree });

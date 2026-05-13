@@ -21,6 +21,7 @@ import {
   Checkmark20Regular,
   ArrowSync20Regular,
   LinkAdd20Regular,
+  Mail20Regular,
 } from "@fluentui/react-icons";
 import { internoxTheme } from "../theme";
 import {
@@ -431,6 +432,9 @@ export default function InvoicePage() {
               </Link>
               <Link to="/aliases" className="dashboard-nav__item">
                 <LinkAdd20Regular /> Faktura-alias
+              </Link>
+              <Link to="/emails" className="dashboard-nav__item">
+                <Mail20Regular /> E-post
               </Link>
             </nav>
           </div>

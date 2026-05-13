@@ -322,6 +322,30 @@ export const GET_INVOICE_RECIPIENT_ALIASES = gql`
   }
 `;
 
+export const GET_EMAILS_BY_USER = gql`
+  query GetEmailsByUser($userId: ID!) {
+    getEmailsByUser(userId: $userId) {
+      id
+      messageId
+      subject
+      fromAddress
+      fromName
+      toAddresses
+      ccAddresses
+      bccAddresses
+      direction
+      createdAt
+      sentAt
+      customerId
+      mailbox
+      source
+      threadId
+      bodyHtml
+      bodyText
+    }
+  }
+`;
+
 export const GET_USER_ACTIVITY_TIMELINE = gql`
   query GetUserActivityTimeline(
     $userId: ID!
