@@ -146,12 +146,10 @@ function AddCompanyAdminDialog({
   open,
   onOpenChange,
   companyName,
-  authContext,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   companyName: string;
-  authContext: { headers: { Authorization: string } };
 }) {
   const styles = useStyles();
   const [email, setEmail] = useState("");
@@ -178,7 +176,6 @@ function AddCompanyAdminDialog({
     try {
       await createAdmin({
         variables: { company: companyName, email, password },
-        context: authContext,
       });
       setDone(true);
     } catch {
@@ -278,14 +275,12 @@ function DeleteCompanyDialog({
   onOpenChange,
   companyId,
   companyName,
-  authContext,
   onDeleted,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   companyId: string;
   companyName: string;
-  authContext: { headers: { Authorization: string } };
   onDeleted: () => void;
 }) {
   const [removeCompany, { loading, error }] = useMutation(
@@ -296,7 +291,6 @@ function DeleteCompanyDialog({
     try {
       await removeCompany({
         variables: { companyId },
-        context: authContext,
       });
       onOpenChange(false);
       onDeleted();
@@ -349,12 +343,10 @@ function DeleteCompanyDialog({
 function CompanyRowActions({
   companyId,
   companyName,
-  authContext,
   onDeleted,
 }: {
   companyId: string;
   companyName: string;
-  authContext: { headers: { Authorization: string } };
   onDeleted: () => void;
 }) {
   const [addAdminOpen, setAddAdminOpen] = useState(false);
@@ -391,14 +383,12 @@ function CompanyRowActions({
         open={addAdminOpen}
         onOpenChange={setAddAdminOpen}
         companyName={companyName}
-        authContext={authContext}
       />
       <DeleteCompanyDialog
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
         companyId={companyId}
         companyName={companyName}
-        authContext={authContext}
         onDeleted={onDeleted}
       />
     </>
@@ -407,10 +397,8 @@ function CompanyRowActions({
 
 function CreateCompanyDialog({
   onCreated,
-  authContext,
 }: {
   onCreated: () => void;
-  authContext: { headers: { Authorization: string } };
 }) {
   const styles = useStyles();
   const [open, setOpen] = useState(false);
@@ -446,7 +434,6 @@ function CreateCompanyDialog({
     try {
       const { data } = await createCompany({
         variables: { name: companyName, domain },
-        context: authContext,
       });
       if (data?.createCompany) {
         setCreatedCompanyName(data.createCompany.name);
@@ -466,7 +453,6 @@ function CreateCompanyDialog({
           email: adminEmail,
           password: adminPassword,
         },
-        context: authContext,
       });
       setStep("done");
       onCreated();
@@ -638,7 +624,6 @@ function CreateCompanyDialog({
 
 export default function SuperAdminDashboardPage() {
   const styles = useStyles();
-  const authContext = { headers: { Authorization: "" } };
 
   const { data, loading, error, refetch } = useQuery(GetAllCompaniesDocument);
 
@@ -661,7 +646,6 @@ export default function SuperAdminDashboardPage() {
           </Text>
           <CreateCompanyDialog
             onCreated={() => refetch()}
-            authContext={authContext}
           />
         </div>
 
@@ -723,7 +707,6 @@ export default function SuperAdminDashboardPage() {
                           <CompanyRowActions
                             companyId={c.id}
                             companyName={c.name}
-                            authContext={authContext}
                             onDeleted={() => refetch()}
                           />
                         </TableCell>
