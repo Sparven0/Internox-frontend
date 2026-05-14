@@ -29,6 +29,44 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
 
+      - name: Check backend connectivity
+        run: |
+          echo "Testing backend reachability..."
+          curl -fsSL --max-time 10 https://internox.duckdns.org/graphql \
+            -H "Content-Type: application/json" \
+            -d '{"query":"{ __typename }"}' \
+            && echo "Backend reachable" \
+            || (echo "Backend NOT reachable from GitHub runner" && exit 1)
+
+      - name: Verify secrets are set
+        run: |
+          if [ -z "$TEST_EMAIL" ]; then echo "ERROR: TEST_EMAIL secret is not set" && exit 1; fi
+          if [ -z "$TEST_PASSWORD" ]; then echo "ERROR: TEST_PASSWORD secret is not set" && exit 1; fi
+          if [ -z "$TEST_DOMAIN" ]; then echo "ERROR: TEST_DOMAIN secret is not set" && exit 1; fi
+          echo "All required secrets are present"
+        env:
+          TEST_EMAIL: ${{ secrets.TEST_EMAIL }}
+          TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}
+          TEST_DOMAIN: ${{ secrets.TEST_DOMAIN }}
+
+      - name: Smoke test login via GraphQL
+        run: |
+          echo "Attempting login mutation..."
+          curl -s --max-time 10 https://internox.duckdns.org/graphql \
+            -H "Content-Type: application/json" \
+            -d "{\"query\":\"mutation { login(email: \\\"$TEST_EMAIL\\\", password: \\\"$TEST_PASSWORD\\\", companyDomain: \\\"$TEST_DOMAIN\\\") { id email } }\"}" \
+            | tee /tmp/login-response.json
+          echo ""
+          if grep -q '"errors"' /tmp/login-response.json; then
+            echo "Login mutation returned errors (see above)"
+            exit 1
+          fi
+          echo "Login smoke test passed"
+        env:
+          TEST_EMAIL: ${{ secrets.TEST_EMAIL }}
+          TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}
+          TEST_DOMAIN: ${{ secrets.TEST_DOMAIN }}
+
       - name: Run Playwright tests
         run: npx playwright test
         env:
