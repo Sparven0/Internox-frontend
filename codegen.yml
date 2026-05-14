@@ -1,4 +1,4 @@
-schema: "http://localhost:1222/graphql"
+schema: "https://internox.duckdns.org/graphql"
 documents: "src/GraphQL/*.ts"
 generates:
   src/__generated__/graphql.ts:
