@@ -1,73 +1,118 @@
-# React + TypeScript + Vite
+# Internox Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A Swedish business management web application for companies that use [Fortnox](https://www.fortnox.se/) as their accounting system. Internox lets company employees and administrators manage invoices, bookkeeping, email integrations, customer assignments, and activity timelines — all in one place.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Dashboard** — Overview of employees, Fortnox customers, email integrations, and event log with customer assignment management
+- **Invoices** — Paginated invoice list with status filtering (unpaid, paid, overdue, cancelled) and customer search
+- **Bookkeeping** — Browse financial years, chart of accounts, and journal entries (vouchers) synced from Fortnox
+- **Email** — Per-user inbox view with direction filtering (inbound/outbound) and full message detail
+- **Activity Timeline** — User activity log with date range filtering
+- **Alias Manager** — Create and manage invoice recipient email aliases mapped to Fortnox customers
+- **Onboarding** — First-time setup wizard for IMAP credentials, user creation, and Fortnox OAuth connection
+- **Super Admin** — Separate login and dashboard for platform-level administration
 
-## React Compiler
+## Tech Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+| Layer | Technology |
+|---|---|
+| Framework | React 19 + TypeScript 6 |
+| Build | Vite 8 |
+| Routing | TanStack React Router |
+| UI | Fluent UI Components v9 |
+| API | Apollo Client 4 (GraphQL) |
+| Code Generation | GraphQL Code Generator |
+| Testing | Playwright 1.60 (E2E) |
 
-## Expanding the ESLint configuration
+## Getting Started
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Prerequisites
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- Node.js 24+
+- A running [Internox backend](https://github.com/Sparven0)
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### Environment variables
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+Create a `.env` file in the project root:
+
+```env
+# Required for E2E tests only
+TEST_EMAIL=your-test-user@example.com
+TEST_PASSWORD=your-password
+TEST_DOMAIN=your-company-domain
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Install & run
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+```bash
+npm install
+npm run dev        # Start dev server at http://localhost:5173
+```
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### Build
+
+```bash
+npm run build      # Type-check + Vite production build
+```
+
+### Lint
+
+```bash
+npm run lint
+```
+
+### Regenerate GraphQL types
+
+```bash
+npx graphql-codegen
+```
+
+
+## Testing
+
+End-to-end tests are written with [Playwright](https://playwright.dev/).
+
+```bash
+npx playwright install --with-deps chromium   # First time only
+npx playwright test                           # Run all tests
+npx playwright test --ui                      # Interactive UI mode
+```
+
+Tests use a shared authenticated session stored in `e2e/.auth/user.json` (git-ignored). The `auth.setup.ts` fixture logs in once using the `TEST_*` env vars before the rest of the suite runs.
+
+### Test coverage
+
+| File | What it covers |
+|---|---|
+| `auth.setup.ts` | Login and session state setup |
+| `login.spec.ts` | Login form rendering, valid/invalid credentials, unauthenticated redirect |
+| `dashboard.spec.ts` | Sidebar nav, page title, stats, employee section, logout |
+| `invoices.spec.ts` | Table columns, filter bar, status dropdown options |
+
+## CI/CD
+
+A GitHub Actions workflow (`.github/workflows/e2e.yml`) runs the full Playwright suite on every pull request. Test credentials are stored as repository secrets:
+
+| Secret | Description |
+|---|---|
+| `TEST_EMAIL` | Test account email |
+| `TEST_PASSWORD` | Test account password |
+| `TEST_DOMAIN` | Test company domain |
+
+The Playwright HTML report is uploaded as a build artifact (retained 14 days) on every run.
+
+## Project Structure
+
+```
+src/
+├── pages/          # One file per route
+├── components/     # Shared UI components
+├── context/        # Auth context and hook
+├── GraphQL/        # Query and mutation definitions
+├── lib/            # Pure utility functions
+├── __generated__/  # Auto-generated GraphQL types (do not edit)
+└── *.css           # Per-page styles
+e2e/                # Playwright tests
+.github/workflows/  # CI pipeline
 ```
