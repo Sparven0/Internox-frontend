@@ -101,8 +101,7 @@ export default function LoginPage() {
 
         <div className="login-visual__content">
           <div className="login-visual__logo">
-            <span className="login-visual__logo-dot" />
-            internox
+            <img src="/logo.svg" alt="internox" />
           </div>
           <div className="login-visual__tagline">
             <p>Kundaktivitet.</p>

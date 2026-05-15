@@ -23,7 +23,7 @@ export type ChatRole = 'user' | 'assistant' | 'system';
     const base = import.meta.env.VITE_API_URL as string | undefined;
     if (!base || !String(base).trim()) {
       const msg =
-        'VITE_API_URL is not set. Add it to .env (e.g. VITE_API_URL=http://localhost:1222).';
+        'VITE_API_URL is not set. Add it to .env (e.g. VITE_API_URL=https://internox.duckdns.org).';
       if (import.meta.env.DEV) console.error(msg);
       throw new Error(msg);
     }

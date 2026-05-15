@@ -73,15 +73,15 @@
 .login-visual__logo {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 18px;
-  font-weight: 700;
-  color: #f0fdf7;
-  letter-spacing: -0.4px;
   position: absolute;
   top: 0;
   left: 0;
   transform: translateY(calc(-100% - 340px));
+}
+
+.login-visual__logo img {
+  height: 88px;
+  width: auto;
 }
 
 .login-visual__logo-dot {

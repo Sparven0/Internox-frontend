@@ -340,8 +340,7 @@ export default function AliasManagerPage() {
         <aside className="dashboard-sidebar">
           <div className="dashboard-sidebar__top">
             <div className="dashboard-logo">
-              <span className="dashboard-logo-dot" />
-              internox
+              <img src="/logo.svg" alt="internox" />
             </div>
 
             <nav className="dashboard-nav">
